@@ -8,7 +8,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Papyon">
     <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/images/logo.png">
+    <link rel="icon" type="image/png" href="/images/app-icon.png">
+    <link rel="shortcut icon" type="image/png" href="/images/app-icon.png">
+    <link rel="apple-touch-icon" href="/images/app-icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/images/app-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/app-icon.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/images/app-icon.png">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Kurye Takip') - Papyon</title>
     

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/png" href="/images/app-icon.png">
+    <link rel="shortcut icon" type="image/png" href="/images/app-icon.png">
     <title>@yield('title', 'Dashboard') - Papyon</title>
     
     <!-- Tailwind CSS CDN -->

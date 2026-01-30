@@ -1,4 +1,4 @@
-#Sat Jan 31 00:36:29 TRT 2026
+#Sat Jan 31 01:09:20 TRT 2026
 base.0=/Users/emir/Desktop/papyon/android-app/app/build/intermediates/dex/debugAndroidTest/mergeProjectDexDebugAndroidTest/0/classes.dex
 path.0=0/classes.dex
 renamed.0=classes.dex
