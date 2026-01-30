@@ -1,0 +1,4 @@
+com.papyon.kurye.test.app-androidTest-0 /Users/emir/Desktop/papyon/android-app/app/build/generated/res/resValues/androidTest/debug
+com.papyon.kurye.test.app-mergeDebugAndroidTestResources-1 /Users/emir/Desktop/papyon/android-app/app/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/merged.dir
+com.papyon.kurye.test.app-mergeDebugAndroidTestResources-2 /Users/emir/Desktop/papyon/android-app/app/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/stripped.dir
+com.papyon.kurye.test.app-merged_res-3 /Users/emir/Desktop/papyon/android-app/app/build/intermediates/merged_res/debugAndroidTest

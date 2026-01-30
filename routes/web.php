@@ -29,6 +29,12 @@ Route::get('/', function () {
     return redirect()->route('panel.login');
 });
 
+// ==================== UYGULAMA İNDİRME ====================
+
+Route::get('/uygulama', function () {
+    return view('download');
+})->name('download');
+
 // ==================== PANEL (OPERASYON) ====================
 
 Route::prefix('panel')->name('panel.')->group(function () {
