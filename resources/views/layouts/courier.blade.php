@@ -215,26 +215,45 @@
             });
         }
 
+        // Check if running as standalone (already installed)
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                            window.navigator.standalone === true;
+
         // PWA Install Prompt
         let deferredPrompt;
         const installPrompt = document.getElementById('pwa-install-prompt');
         const installBtn = document.getElementById('pwa-install-btn');
         const dismissBtn = document.getElementById('pwa-dismiss-btn');
 
+        // Detect iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+        // Show iOS instructions
+        function showIOSPrompt() {
+            if (isStandalone) return;
+            
+            const dismissed = localStorage.getItem('pwa-dismissed');
+            if (dismissed && (Date.now() - parseInt(dismissed)) < 24 * 60 * 60 * 1000) {
+                return;
+            }
+
+            // Update button text for iOS
+            if (installBtn) {
+                installBtn.textContent = 'Nasıl Eklenir?';
+            }
+            
+            setTimeout(() => {
+                installPrompt.classList.remove('hidden');
+                installPrompt.classList.add('flex');
+            }, 2000);
+        }
+
+        // For Android/Chrome
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
             
-            // Check if already dismissed recently
-            const dismissed = localStorage.getItem('pwa-dismissed');
-            if (dismissed) {
-                const dismissedTime = parseInt(dismissed);
-                const now = Date.now();
-                // Show again after 24 hours
-                if (now - dismissedTime < 24 * 60 * 60 * 1000) {
-                    return;
-                }
-            }
+            if (isStandalone) return;
             
             // Show install prompt after 2 seconds
             setTimeout(() => {
@@ -245,6 +264,14 @@
 
         if (installBtn) {
             installBtn.addEventListener('click', async () => {
+                if (isIOS) {
+                    // Show iOS instructions
+                    alert('Safari\'de:\n1. Alt menüden "Paylaş" butonuna tıklayın\n2. "Ana Ekrana Ekle" seçeneğini seçin\n3. "Ekle" butonuna tıklayın');
+                    installPrompt.classList.add('hidden');
+                    installPrompt.classList.remove('flex');
+                    return;
+                }
+                
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
@@ -271,6 +298,11 @@
             installPrompt.classList.remove('flex');
             deferredPrompt = null;
         });
+
+        // Show prompt for iOS after page load
+        if (isIOS && !isStandalone) {
+            window.addEventListener('load', showIOSPrompt);
+        }
     </script>
 
     @stack('scripts')
