@@ -1,8 +1,10 @@
 // Papyon Kurye Service Worker
-const CACHE_NAME = 'papyon-v1';
+const CACHE_NAME = 'papyon-v2';
 const urlsToCache = [
-    '/',
+    '/courier/',
+    '/courier/login',
     '/images/logo.png',
+    '/images/app-icon.png',
     '/manifest.json'
 ];
 
