@@ -83,7 +83,7 @@
         </div>
         
         <!-- Download Button -->
-        <a href="/apk/app-debug.apk" download="PapyonKurye.apk" 
+        <a href="/apk/papyon.apk" download="PapyonKurye.apk" 
            class="pulse-btn w-full max-w-xs bg-white text-black py-4 px-8 rounded-2xl font-bold text-lg text-center flex items-center justify-center space-x-3 hover:bg-gray-100 transition-colors shadow-2xl">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
