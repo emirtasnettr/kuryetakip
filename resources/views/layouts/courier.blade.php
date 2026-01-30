@@ -179,6 +179,95 @@
         @endif
     @endauth
     
+    <!-- PWA Install Prompt -->
+    <div id="pwa-install-prompt" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
+            <div class="w-20 h-20 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <img src="/images/logo.png" alt="Papyon" class="h-12 w-auto">
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Uygulamayı Yükle</h3>
+            <p class="text-gray-500 text-sm mb-6">Papyon Kurye'yi ana ekranınıza ekleyin ve uygulama gibi kullanın.</p>
+            
+            <div class="space-y-3">
+                <button id="pwa-install-btn" class="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors">
+                    Ana Ekrana Ekle
+                </button>
+                <button id="pwa-dismiss-btn" class="w-full text-gray-500 py-2 text-sm hover:text-gray-700">
+                    Daha Sonra
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Worker & PWA Script -->
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW registration failed'));
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        const installPrompt = document.getElementById('pwa-install-prompt');
+        const installBtn = document.getElementById('pwa-install-btn');
+        const dismissBtn = document.getElementById('pwa-dismiss-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Check if already dismissed recently
+            const dismissed = localStorage.getItem('pwa-dismissed');
+            if (dismissed) {
+                const dismissedTime = parseInt(dismissed);
+                const now = Date.now();
+                // Show again after 24 hours
+                if (now - dismissedTime < 24 * 60 * 60 * 1000) {
+                    return;
+                }
+            }
+            
+            // Show install prompt after 2 seconds
+            setTimeout(() => {
+                installPrompt.classList.remove('hidden');
+                installPrompt.classList.add('flex');
+            }, 2000);
+        });
+
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log('User choice:', outcome);
+                    deferredPrompt = null;
+                }
+                installPrompt.classList.add('hidden');
+                installPrompt.classList.remove('flex');
+            });
+        }
+
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', () => {
+                localStorage.setItem('pwa-dismissed', Date.now().toString());
+                installPrompt.classList.add('hidden');
+                installPrompt.classList.remove('flex');
+            });
+        }
+
+        // Check if app is installed
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA installed');
+            installPrompt.classList.add('hidden');
+            installPrompt.classList.remove('flex');
+            deferredPrompt = null;
+        });
+    </script>
+
     @stack('scripts')
 </body>
 </html>
