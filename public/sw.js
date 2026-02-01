@@ -18,14 +18,25 @@ self.addEventListener('install', event => {
 // Fetch event - Network first for HTML, cache first for static assets
 self.addEventListener('fetch', event => {
     const request = event.request;
+    const url = new URL(request.url);
     
     // Skip non-GET requests
     if (request.method !== 'GET') {
         return;
     }
     
+    // Skip chrome-extension, moz-extension, and other non-http(s) schemes
+    if (!url.protocol.startsWith('http')) {
+        return;
+    }
+    
+    // Skip external requests (only cache same-origin)
+    if (url.origin !== location.origin) {
+        return;
+    }
+    
     // For HTML pages (navigation requests) - always try network first
-    if (request.mode === 'navigate' || request.headers.get('accept').includes('text/html')) {
+    if (request.mode === 'navigate' || (request.headers.get('accept') && request.headers.get('accept').includes('text/html'))) {
         event.respondWith(
             fetch(request)
                 .then(response => {

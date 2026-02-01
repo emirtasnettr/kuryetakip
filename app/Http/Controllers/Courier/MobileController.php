@@ -128,7 +128,11 @@ class MobileController extends Controller
         $validated = $request->validate([
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
-            'photo' => 'nullable|image|max:10240',
+            'photo' => 'required|image|max:25600',
+        ], [
+            'photo.required' => 'Başlangıç fotoğrafı zorunludur.',
+            'photo.image' => 'Yüklenen dosya bir görsel olmalıdır.',
+            'photo.max' => 'Fotoğraf boyutu en fazla 25MB olabilir.',
         ]);
 
         // Kuryenin ana bölgesini otomatik olarak al
@@ -200,7 +204,11 @@ class MobileController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
             'package_count' => 'required|integer|min:0',
             'notes' => 'nullable|string|max:1000',
-            'photo' => 'nullable|image|max:10240',
+            'photo' => 'required|image|max:25600',
+        ], [
+            'photo.required' => 'Bitiş fotoğrafı zorunludur.',
+            'photo.image' => 'Yüklenen dosya bir görsel olmalıdır.',
+            'photo.max' => 'Fotoğraf boyutu en fazla 25MB olabilir.',
         ]);
 
         DB::beginTransaction();

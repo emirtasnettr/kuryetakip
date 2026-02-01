@@ -29,8 +29,8 @@ class StartShiftRequest extends FormRequest
             'accuracy' => 'nullable|integer|min:0',
             'address' => 'nullable|string|max:500',
             
-            // Fotoğraf (opsiyonel)
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // Max 10MB
+            // Fotoğraf (zorunlu)
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif,heic,heif|max:25600', // Max 25MB
             
             // Cihaz bilgileri (opsiyonel, loglama için)
             'device_id' => 'nullable|string|max:100',
@@ -50,8 +50,10 @@ class StartShiftRequest extends FormRequest
             'latitude.between' => 'Geçersiz enlem değeri.',
             'longitude.required' => 'Konum bilgisi (boylam) zorunludur.',
             'longitude.between' => 'Geçersiz boylam değeri.',
+            'photo.required' => 'Başlangıç fotoğrafı zorunludur.',
             'photo.image' => 'Yüklenen dosya bir görsel olmalıdır.',
-            'photo.max' => 'Fotoğraf boyutu en fazla 10MB olabilir.',
+            'photo.mimes' => 'Fotoğraf formatı jpeg, png, jpg, gif veya heic olmalıdır.',
+            'photo.max' => 'Fotoğraf boyutu en fazla 25MB olabilir.',
         ];
     }
 }

@@ -32,8 +32,8 @@ class EndShiftRequest extends FormRequest
             // Paket sayısı (zorunlu)
             'package_count' => 'required|integer|min:0|max:9999',
             
-            // Fotoğraf (opsiyonel)
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // Max 10MB
+            // Fotoğraf (zorunlu)
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif,heic,heif|max:25600', // Max 25MB
             
             // Notlar (opsiyonel)
             'notes' => 'nullable|string|max:1000',
@@ -59,8 +59,10 @@ class EndShiftRequest extends FormRequest
             'package_count.required' => 'Paket sayısı zorunludur.',
             'package_count.integer' => 'Paket sayısı bir sayı olmalıdır.',
             'package_count.min' => 'Paket sayısı 0\'dan küçük olamaz.',
+            'photo.required' => 'Bitiş fotoğrafı zorunludur.',
             'photo.image' => 'Yüklenen dosya bir görsel olmalıdır.',
-            'photo.max' => 'Fotoğraf boyutu en fazla 10MB olabilir.',
+            'photo.mimes' => 'Fotoğraf formatı jpeg, png, jpg, gif veya heic olmalıdır.',
+            'photo.max' => 'Fotoğraf boyutu en fazla 25MB olabilir.',
         ];
     }
 }
