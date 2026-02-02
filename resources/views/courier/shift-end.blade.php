@@ -51,7 +51,10 @@
         
         <!-- Package Count -->
         <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-            <h3 class="font-semibold text-gray-800 mb-3">Bugün Kaç Paket Attın?</h3>
+            <h3 class="font-semibold text-gray-800 mb-3">
+                Bugün Kaç Paket Attın?
+                <span class="text-red-500">*</span>
+            </h3>
             
             <input 
                 type="number" 
@@ -61,10 +64,18 @@
                 min="0"
                 inputmode="numeric"
                 pattern="[0-9]*"
-                placeholder="Paket sayısı girin"
+                placeholder="Paket sayısı girin (0 olabilir)"
                 required
                 class="w-full text-center text-2xl font-bold py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black @error('package_count') border-red-500 @enderror"
             >
+            
+            <!-- Package Count Required Warning -->
+            <div id="packageCountRequired" class="mt-2 text-sm text-amber-600 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>Paket sayısı girilmelidir (0 girebilirsiniz)</span>
+            </div>
             
             @error('package_count')
                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -155,6 +166,7 @@
 <script>
     let locationReady = false;
     let photoReady = false;
+    let packageCountReady = false;
     let cameraPermissionDenied = false;
     
     if (navigator.geolocation) {
@@ -195,6 +207,35 @@
                 maximumAge: 0
             }
         );
+    }
+    
+    // Package count validation
+    const packageCountInput = document.getElementById('packageCount');
+    const packageCountWarning = document.getElementById('packageCountRequired');
+    
+    function checkPackageCount() {
+        const value = packageCountInput.value;
+        // Check if value is entered (0 is valid, empty is not)
+        packageCountReady = value !== '' && !isNaN(parseInt(value)) && parseInt(value) >= 0;
+        
+        if (packageCountReady) {
+            packageCountWarning.classList.add('hidden');
+            packageCountInput.classList.remove('border-red-500');
+            packageCountInput.classList.add('border-green-500');
+        } else {
+            packageCountWarning.classList.remove('hidden');
+            packageCountInput.classList.remove('border-green-500');
+        }
+        
+        updateSubmitButton();
+    }
+    
+    packageCountInput.addEventListener('input', checkPackageCount);
+    packageCountInput.addEventListener('change', checkPackageCount);
+    
+    // Check on page load if there's an old value
+    if (packageCountInput.value !== '') {
+        checkPackageCount();
     }
     
     // Check camera permission
@@ -272,16 +313,23 @@
         }
     });
     
-    // Update submit button - requires both location AND photo
+    // Update submit button - requires location, photo AND package count
     function updateSubmitButton() {
         const btn = document.getElementById('submitBtn');
-        btn.disabled = !(locationReady && photoReady);
+        btn.disabled = !(locationReady && photoReady && packageCountReady);
     }
     
     document.getElementById('endForm').addEventListener('submit', function(e) {
         if (!locationReady) {
             e.preventDefault();
             alert('Konum bilgisi alınamadı. Lütfen GPS\'inizi kontrol edin.');
+            return;
+        }
+        
+        if (!packageCountReady) {
+            e.preventDefault();
+            alert('Lütfen paket sayısını girin. 0 girebilirsiniz.');
+            packageCountInput.focus();
             return;
         }
         

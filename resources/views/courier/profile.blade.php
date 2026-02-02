@@ -21,7 +21,10 @@
     
     <!-- Monthly Stats -->
     <div class="bg-white rounded-xl shadow-sm p-4">
-        <h3 class="font-semibold text-gray-800 mb-4">Bu Ay</h3>
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-gray-800">Bu Ay</h3>
+            <span class="text-sm text-gray-500">{{ now()->translatedFormat('F Y') }}</span>
+        </div>
         
         <div class="grid grid-cols-3 gap-4">
             <div class="text-center">

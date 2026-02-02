@@ -264,11 +264,20 @@ class MobileController extends Controller
         $user = $request->user();
         $user->load(['courierDistricts', 'partner']);
 
-        // Bu ay istatistikleri
+        // Bu ay istatistikleri (yıl ve ay kontrolü)
         $monthlyStats = [
-            'shift_count' => $user->shifts()->completed()->whereMonth('started_at', now()->month)->count(),
-            'total_packages' => $user->shifts()->completed()->whereMonth('started_at', now()->month)->sum('package_count'),
-            'total_hours' => round($user->shifts()->completed()->whereMonth('started_at', now()->month)->sum('total_minutes') / 60, 1),
+            'shift_count' => $user->shifts()->completed()
+                ->whereYear('started_at', now()->year)
+                ->whereMonth('started_at', now()->month)
+                ->count(),
+            'total_packages' => $user->shifts()->completed()
+                ->whereYear('started_at', now()->year)
+                ->whereMonth('started_at', now()->month)
+                ->sum('package_count'),
+            'total_hours' => round($user->shifts()->completed()
+                ->whereYear('started_at', now()->year)
+                ->whereMonth('started_at', now()->month)
+                ->sum('total_minutes') / 60, 1),
         ];
 
         return view('courier.profile', compact('user', 'monthlyStats'));

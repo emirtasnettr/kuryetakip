@@ -29,7 +29,7 @@
                         <h2 class="text-2xl font-bold text-gray-800">{{ $courier->name }}</h2>
                         <p class="text-gray-500">{{ $courier->email }}</p>
                         @if($courier->employee_code)
-                            <span class="text-sm text-indigo-600 font-medium">{{ $courier->employee_code }}</span>
+                            <span class="text-sm text-indigo-600 font-medium">TC: {{ $courier->employee_code }}</span>
                         @endif
                     </div>
                 </div>

@@ -6,7 +6,8 @@
 
 <!-- Stats Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-xl shadow-sm p-6">
+    <!-- Toplam Kurye -->
+    <a href="{{ route('panel.couriers.index') }}" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer block">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-500 text-sm">Toplam Kurye</p>
@@ -18,23 +19,31 @@
                 </svg>
             </div>
         </div>
-    </div>
+        <p class="text-xs text-gray-400 mt-2">Tüm kuryeleri görüntüle →</p>
+    </a>
     
-    <div class="bg-white rounded-xl shadow-sm p-6">
+    <!-- Aktif Vardiya -->
+    <a href="{{ route('panel.shifts.active') }}" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer block">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-500 text-sm">Aktif Vardiya</p>
                 <p class="text-3xl font-bold text-green-600 mt-1">{{ $todayStats['active_shifts'] }}</p>
             </div>
-            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center relative">
+                @if($todayStats['active_shifts'] > 0)
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-ping"></span>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"></span>
+                @endif
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
         </div>
-    </div>
+        <p class="text-xs text-gray-400 mt-2">Aktif vardiyaları görüntüle →</p>
+    </a>
     
-    <div class="bg-white rounded-xl shadow-sm p-6">
+    <!-- Bugün Tamamlanan -->
+    <a href="{{ route('panel.shifts.index') }}?start_date={{ today()->format('Y-m-d') }}&end_date={{ today()->format('Y-m-d') }}&status=completed" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer block">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-500 text-sm">Bugün Tamamlanan</p>
@@ -46,9 +55,11 @@
                 </svg>
             </div>
         </div>
-    </div>
+        <p class="text-xs text-gray-400 mt-2">Tamamlanan vardiyaları görüntüle →</p>
+    </a>
     
-    <div class="bg-white rounded-xl shadow-sm p-6">
+    <!-- Bugün Paket -->
+    <a href="{{ route('panel.shifts.index') }}?start_date={{ today()->format('Y-m-d') }}&end_date={{ today()->format('Y-m-d') }}" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer block">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-500 text-sm">Bugün Paket</p>
@@ -60,7 +71,8 @@
                 </svg>
             </div>
         </div>
-    </div>
+        <p class="text-xs text-gray-400 mt-2">Bugünün vardiyalarını görüntüle →</p>
+    </a>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -82,7 +94,7 @@
             @else
                 <div class="space-y-4">
                     @foreach($activeShifts as $shift)
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <a href="{{ route('panel.shifts.show', $shift) }}" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-green-50 transition-colors cursor-pointer block">
                             <div class="flex items-center">
                                 <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                                     <span class="text-green-600 font-semibold">{{ strtoupper(substr($shift->user->name, 0, 1)) }}</span>
@@ -96,7 +108,7 @@
                                 <p class="text-sm font-medium text-green-600">{{ $shift->formatted_duration }}</p>
                                 <p class="text-xs text-gray-500">{{ $shift->started_at->format('H:i') }}'den beri</p>
                             </div>
-                        </div>
+                        </a>
                     @endforeach
                 </div>
             @endif

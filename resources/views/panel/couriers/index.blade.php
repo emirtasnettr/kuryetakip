@@ -66,7 +66,7 @@
                         </div>
                         <div class="ml-3">
                             <h3 class="font-semibold text-gray-800">{{ $courier->name }}</h3>
-                            <p class="text-sm text-gray-500">{{ $courier->employee_code ?? $courier->email }}</p>
+                            <p class="text-sm text-gray-500">{{ $courier->employee_code ? 'TC: ' . $courier->employee_code : $courier->email }}</p>
                         </div>
                     </div>
                     <span class="px-2 py-1 text-xs font-medium rounded-full {{ $courier->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">

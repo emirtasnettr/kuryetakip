@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\District;
+use App\Rules\TurkishIdNumber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -76,18 +77,21 @@ class CourierController extends Controller
             ->limit(10)
             ->get();
 
-        // Bu ay istatistikleri
+        // Bu ay istatistikleri (yıl ve ay kontrolü)
         $monthlyStats = [
             'shift_count' => $courier->shifts()
                 ->completed()
+                ->whereYear('started_at', now()->year)
                 ->whereMonth('started_at', now()->month)
                 ->count(),
             'total_packages' => $courier->shifts()
                 ->completed()
+                ->whereYear('started_at', now()->year)
                 ->whereMonth('started_at', now()->month)
                 ->sum('package_count'),
             'total_hours' => round($courier->shifts()
                 ->completed()
+                ->whereYear('started_at', now()->year)
                 ->whereMonth('started_at', now()->month)
                 ->sum('total_minutes') / 60, 1),
         ];
@@ -102,14 +106,15 @@ class CourierController extends Controller
     {
         $this->authorize('create', User::class);
 
-        $districts = District::active()->orderBy('name')->get();
+        $districts = District::active()->orderBy('city')->orderBy('name')->get();
+        $cities = District::active()->distinct()->orderBy('city')->pluck('city');
         
         // İş ortağı listesi (sadece yöneticiler için)
         $partners = auth()->user()->isSystemAdmin() 
             ? User::withRole(Role::BUSINESS_PARTNER)->active()->get()
             : collect();
 
-        return view('panel.couriers.create', compact('districts', 'partners'));
+        return view('panel.couriers.create', compact('districts', 'cities', 'partners'));
     }
 
     /**
@@ -123,14 +128,19 @@ class CourierController extends Controller
             'name' => 'required|string|max:100',
             'email' => 'required|email|unique:users,email',
             'password' => ['required', 'confirmed', Password::defaults()],
-            'phone' => 'nullable|string|max:20',
-            'employee_code' => 'nullable|string|max:50|unique:users,employee_code',
+            'phone' => 'required|string|max:20',
+            'employee_code' => ['required', 'string', 'size:11', 'unique:users,employee_code', new TurkishIdNumber],
             'vehicle_type' => 'nullable|string|max:50',
-            'vehicle_plate' => 'nullable|string|max:20',
+            'vehicle_plate' => 'required|string|max:20',
             'district_ids' => 'required|array|min:1',
             'district_ids.*' => 'exists:districts,id',
             'primary_district_id' => 'required|in_array:district_ids.*',
             'partner_id' => 'nullable|exists:users,id',
+        ], [
+            'phone.required' => 'Telefon numarası zorunludur.',
+            'employee_code.required' => 'T.C. Kimlik No zorunludur.',
+            'employee_code.size' => 'T.C. Kimlik No 11 haneli olmalıdır.',
+            'vehicle_plate.required' => 'Araç plakası zorunludur.',
         ]);
 
         // Kurye rolünü al
@@ -180,13 +190,17 @@ class CourierController extends Controller
         }
 
         $courier->load('courierDistricts');
-        $districts = District::active()->orderBy('name')->get();
+        $districts = District::active()->orderBy('city')->orderBy('name')->get();
+        $cities = District::active()->distinct()->orderBy('city')->pluck('city');
+        
+        // Kuryenin mevcut şehrini bul
+        $currentCity = $courier->courierDistricts->first()?->city;
         
         $partners = auth()->user()->isSystemAdmin()
             ? User::withRole(Role::BUSINESS_PARTNER)->active()->get()
             : collect();
 
-        return view('panel.couriers.edit', compact('courier', 'districts', 'partners'));
+        return view('panel.couriers.edit', compact('courier', 'districts', 'cities', 'currentCity', 'partners'));
     }
 
     /**
@@ -203,14 +217,19 @@ class CourierController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'email' => 'required|email|unique:users,email,' . $courier->id,
-            'phone' => 'nullable|string|max:20',
-            'employee_code' => 'nullable|string|max:50|unique:users,employee_code,' . $courier->id,
+            'phone' => 'required|string|max:20',
+            'employee_code' => ['required', 'string', 'size:11', 'unique:users,employee_code,' . $courier->id, new TurkishIdNumber],
             'vehicle_type' => 'nullable|string|max:50',
-            'vehicle_plate' => 'nullable|string|max:20',
+            'vehicle_plate' => 'required|string|max:20',
             'district_ids' => 'required|array|min:1',
             'district_ids.*' => 'exists:districts,id',
             'primary_district_id' => 'required|in_array:district_ids.*',
             'is_active' => 'boolean',
+        ], [
+            'phone.required' => 'Telefon numarası zorunludur.',
+            'employee_code.required' => 'T.C. Kimlik No zorunludur.',
+            'employee_code.size' => 'T.C. Kimlik No 11 haneli olmalıdır.',
+            'vehicle_plate.required' => 'Araç plakası zorunludur.',
         ]);
 
         // Kurye bilgilerini güncelle
