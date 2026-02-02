@@ -198,4 +198,14 @@ class ShiftPolicy
 
         return $this->view($user, $shift);
     }
+
+    /**
+     * Paket sayısını güncelleme yetkisi (sadece sistem yöneticisi)
+     */
+    public function updatePackageCount(User $user, Shift $shift): bool
+    {
+        // before() metodu zaten sistem yöneticisi için true döndürüyor
+        // Bu metot sadece diğer kullanıcılar için false döndürecek
+        return false;
+    }
 }

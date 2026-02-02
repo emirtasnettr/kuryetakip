@@ -162,6 +162,34 @@ class ShiftController extends Controller
     }
 
     /**
+     * Paket sayısını güncelle (sadece sistem yöneticisi)
+     */
+    public function updatePackageCount(Request $request, Shift $shift)
+    {
+        $this->authorize('updatePackageCount', $shift);
+
+        $validated = $request->validate([
+            'package_count' => 'required|integer|min:0',
+        ], [
+            'package_count.required' => 'Paket sayısı zorunludur.',
+            'package_count.integer' => 'Paket sayısı tam sayı olmalıdır.',
+            'package_count.min' => 'Paket sayısı 0 veya daha büyük olmalıdır.',
+        ]);
+
+        $oldCount = $shift->package_count;
+        
+        $shift->update([
+            'package_count' => $validated['package_count'],
+            'admin_notes' => ($shift->admin_notes ? $shift->admin_notes . "\n\n" : '') 
+                . "[Paket sayısı güncellendi - " . now()->format('d.m.Y H:i') . "]\n"
+                . "Eski: " . ($oldCount ?? '0') . " → Yeni: " . $validated['package_count'],
+        ]);
+
+        return redirect()->route('panel.shifts.show', $shift)
+            ->with('success', 'Paket sayısı başarıyla güncellendi.');
+    }
+
+    /**
      * Rapor sayfası
      */
     public function reports(Request $request)

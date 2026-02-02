@@ -62,6 +62,7 @@ Route::prefix('panel')->name('panel.')->group(function () {
             Route::post('/{shift}/cancel', [ShiftController::class, 'cancel'])->name('cancel');
             Route::post('/{shift}/note', [ShiftController::class, 'addNote'])->name('add-note');
             Route::post('/{shift}/force-complete', [ShiftController::class, 'forceComplete'])->name('force-complete');
+            Route::post('/{shift}/update-package-count', [ShiftController::class, 'updatePackageCount'])->name('update-package-count');
         });
 
         // Kuryeler

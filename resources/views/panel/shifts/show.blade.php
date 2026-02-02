@@ -46,9 +46,38 @@
                     <p class="text-2xl font-bold text-gray-800">{{ $shift->formatted_duration }}</p>
                     <p class="text-sm text-gray-500">Süre</p>
                 </div>
-                <div class="text-center p-4 bg-gray-50 rounded-lg">
-                    <p class="text-2xl font-bold text-indigo-600">{{ $shift->package_count ?? '-' }}</p>
+                <div class="text-center p-4 bg-gray-50 rounded-lg relative">
+                    <div class="flex items-center justify-center gap-1">
+                        <p id="packageCountDisplay" class="text-2xl font-bold text-indigo-600">{{ $shift->package_count ?? '-' }}</p>
+                        @can('updatePackageCount', $shift)
+                        <button type="button" onclick="togglePackageEdit()" class="text-gray-400 hover:text-indigo-600 transition-colors" title="Düzenle">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                        </button>
+                        @endcan
+                    </div>
                     <p class="text-sm text-gray-500">Paket</p>
+                    
+                    @can('updatePackageCount', $shift)
+                    <!-- Package Edit Form (Hidden by default) -->
+                    <div id="packageEditForm" class="hidden absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-10 bg-white border border-gray-200 rounded-lg shadow-lg p-3 w-48">
+                        <form action="{{ route('panel.shifts.update-package-count', $shift) }}" method="POST">
+                            @csrf
+                            <label class="block text-xs font-medium text-gray-700 mb-1 text-left">Paket Sayısı</label>
+                            <input type="number" name="package_count" min="0" value="{{ $shift->package_count ?? 0 }}" 
+                                   class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500 mb-2">
+                            <div class="flex gap-2">
+                                <button type="button" onclick="togglePackageEdit()" class="flex-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                                    İptal
+                                </button>
+                                <button type="submit" class="flex-1 px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                                    Kaydet
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    @endcan
                 </div>
                 <div class="text-center p-4 bg-gray-50 rounded-lg">
                     <p class="text-2xl font-bold text-gray-800">{{ $shift->started_at->format('H:i') }}</p>
@@ -236,3 +265,23 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+function togglePackageEdit() {
+    const form = document.getElementById('packageEditForm');
+    form.classList.toggle('hidden');
+}
+
+// Close form when clicking outside
+document.addEventListener('click', function(event) {
+    const form = document.getElementById('packageEditForm');
+    if (!form) return;
+    
+    const isClickInside = form.contains(event.target) || event.target.closest('button[onclick="togglePackageEdit()"]');
+    if (!isClickInside && !form.classList.contains('hidden')) {
+        form.classList.add('hidden');
+    }
+});
+</script>
+@endpush
