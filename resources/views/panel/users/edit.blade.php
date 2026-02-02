@@ -231,7 +231,14 @@
             
             <!-- İlçe Seçimi -->
             <div id="courierDistrictsContainer" class="{{ $courierCity ? '' : 'hidden' }} mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Çalışma İlçeleri *</label>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-medium text-gray-700">Çalışma İlçeleri *</label>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="selectAllCourierDistricts()" class="text-xs text-indigo-600 hover:text-indigo-800">Tümünü İşaretle</button>
+                        <span class="text-gray-300">|</span>
+                        <button type="button" onclick="deselectAllCourierDistricts()" class="text-xs text-gray-600 hover:text-gray-800">Tümünü Kaldır</button>
+                    </div>
+                </div>
                 <div id="courierDistrictsGrid" class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
                     @foreach($districts as $district)
                         <label class="courier-district-item flex items-center p-2 hover:bg-gray-50 rounded {{ $courierCity == $district->city ? '' : 'hidden' }}" data-city="{{ $district->city }}">
@@ -467,6 +474,19 @@ function loadDistrictsForGroup(groupId, preselectedDistricts = []) {
     }
     
     container.classList.remove('hidden');
+    
+    // Header with select all buttons
+    const headerHtml = `
+        <div class="flex items-center justify-between mb-2">
+            <label class="block text-sm font-medium text-gray-700">İlçeler</label>
+            <div class="flex gap-2">
+                <button type="button" onclick="selectAllInGroup(${groupId})" class="text-xs text-indigo-600 hover:text-indigo-800">Tümünü İşaretle</button>
+                <span class="text-gray-300">|</span>
+                <button type="button" onclick="deselectAllInGroup(${groupId})" class="text-xs text-gray-600 hover:text-gray-800">Tümünü Kaldır</button>
+            </div>
+        </div>
+    `;
+    
     grid.innerHTML = '';
     
     const districts = allDistricts[selectedCity] || [];
@@ -476,13 +496,48 @@ function loadDistrictsForGroup(groupId, preselectedDistricts = []) {
         label.className = 'flex items-center p-1.5 hover:bg-white rounded';
         label.innerHTML = `
             <input type="checkbox" name="districts[]" value="${district.id}" ${checked}
-                   class="h-4 w-4 text-black focus:ring-black border-gray-300 rounded">
+                   class="h-4 w-4 text-black focus:ring-black border-gray-300 rounded group-district-checkbox">
             <span class="ml-2 text-sm text-gray-700">${district.name}</span>
         `;
         grid.appendChild(label);
     });
     
+    // Update container HTML to include header
+    container.innerHTML = headerHtml + '<div class="districts-grid grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto border border-gray-100 rounded-lg p-2 bg-gray-50">' + grid.innerHTML + '</div>';
+    
     updateCitySelectOptions();
+}
+
+// Kurye için tümünü işaretle
+function selectAllCourierDistricts() {
+    document.querySelectorAll('.courier-district-item:not(.hidden) .courier-district-checkbox').forEach(cb => {
+        cb.checked = true;
+    });
+    updateCourierPrimaryOptions();
+}
+
+// Kurye için tümünü kaldır
+function deselectAllCourierDistricts() {
+    document.querySelectorAll('.courier-district-item:not(.hidden) .courier-district-checkbox').forEach(cb => {
+        cb.checked = false;
+    });
+    updateCourierPrimaryOptions();
+}
+
+// Staff grup için tümünü işaretle
+function selectAllInGroup(groupId) {
+    const group = document.querySelector(`.city-group[data-group-id="${groupId}"]`);
+    group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.checked = true;
+    });
+}
+
+// Staff grup için tümünü kaldır
+function deselectAllInGroup(groupId) {
+    const group = document.querySelector(`.city-group[data-group-id="${groupId}"]`);
+    group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+    });
 }
 
 function removeCityGroup(groupId) {
