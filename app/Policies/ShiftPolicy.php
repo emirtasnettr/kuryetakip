@@ -180,4 +180,22 @@ class ShiftPolicy
 
         return $this->view($user, $shift);
     }
+
+    /**
+     * Vardiyayı zorla sonlandırma yetkisi (admin)
+     */
+    public function forceComplete(User $user, Shift $shift): bool
+    {
+        // Sadece operasyon yöneticisi zorla sonlandırabilir
+        if (!$user->isOperationManager()) {
+            return false;
+        }
+
+        // Vardiya aktif olmalı
+        if (!$shift->isActive()) {
+            return false;
+        }
+
+        return $this->view($user, $shift);
+    }
 }

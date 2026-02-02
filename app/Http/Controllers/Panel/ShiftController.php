@@ -129,6 +129,39 @@ class ShiftController extends Controller
     }
 
     /**
+     * Vardiyayı zorla sonlandır (yönetici)
+     */
+    public function forceComplete(Request $request, Shift $shift)
+    {
+        $this->authorize('forceComplete', $shift);
+
+        $validated = $request->validate([
+            'package_count' => 'required|integer|min:0',
+            'admin_notes' => 'nullable|string|max:1000',
+        ], [
+            'package_count.required' => 'Paket sayısı zorunludur.',
+            'package_count.integer' => 'Paket sayısı tam sayı olmalıdır.',
+            'package_count.min' => 'Paket sayısı 0 veya daha büyük olmalıdır.',
+        ]);
+
+        $endTime = now();
+        $totalMinutes = $shift->started_at->diffInMinutes($endTime);
+
+        $shift->update([
+            'status' => Shift::STATUS_COMPLETED,
+            'ended_at' => $endTime,
+            'package_count' => $validated['package_count'],
+            'total_minutes' => $totalMinutes,
+            'admin_notes' => $validated['admin_notes'] 
+                ? ($shift->admin_notes ? $shift->admin_notes . "\n\n" : '') . "[Yönetici tarafından sonlandırıldı]\n" . $validated['admin_notes']
+                : ($shift->admin_notes ? $shift->admin_notes . "\n\n" : '') . "[Yönetici tarafından sonlandırıldı - " . now()->format('d.m.Y H:i') . "]",
+        ]);
+
+        return redirect()->route('panel.shifts.show', $shift)
+            ->with('success', 'Vardiya başarıyla sonlandırıldı.');
+    }
+
+    /**
      * Rapor sayfası
      */
     public function reports(Request $request)

@@ -187,9 +187,36 @@
         
         <!-- Actions -->
         @if($shift->isActive())
+        
+        @can('forceComplete', $shift)
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Vardiyayı Sonlandır</h3>
+            <p class="text-sm text-gray-500 mb-4">Kurye vardiyayı sonlandırmadıysa buradan manuel olarak sonlandırabilirsiniz.</p>
+            
+            <form action="{{ route('panel.shifts.force-complete', $shift) }}" method="POST" 
+                  onsubmit="return confirm('Bu vardiyayı sonlandırmak istediğinize emin misiniz?')">
+                @csrf
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Paket Sayısı *</label>
+                    <input type="number" name="package_count" min="0" value="0" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Not (opsiyonel)</label>
+                    <textarea name="admin_notes" rows="2" placeholder="Sonlandırma sebebi..."
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                    Vardiyayı Sonlandır
+                </button>
+            </form>
+        </div>
+        @endcan
+        
         @can('cancel', $shift)
         <div class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">İşlemler</h3>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Vardiyayı İptal Et</h3>
+            <p class="text-sm text-gray-500 mb-4">Vardiyayı iptal etmek geri alınamaz bir işlemdir.</p>
             
             <form action="{{ route('panel.shifts.cancel', $shift) }}" method="POST" 
                   onsubmit="return confirm('Bu vardiyayı iptal etmek istediğinize emin misiniz?')">

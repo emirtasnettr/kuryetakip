@@ -72,6 +72,7 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('view-reports', function (User $user) {
             return $user->isOperationStaff() || 
                    $user->isOperationManager() || 
+                   $user->isBusinessPartner() ||
                    $user->isSystemAdmin();
         });
 

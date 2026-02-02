@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\District;
+use App\Rules\TurkishIdNumber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -62,12 +63,13 @@ class UserController extends Controller
         $this->authorize('manage-users');
 
         $roles = Role::where('is_active', true)->get();
-        $districts = District::where('is_active', true)->orderBy('name')->get();
+        $districts = District::where('is_active', true)->orderBy('city')->orderBy('name')->get();
+        $cities = District::where('is_active', true)->distinct()->orderBy('city')->pluck('city');
         $partners = User::whereHas('role', function ($q) {
             $q->where('name', Role::BUSINESS_PARTNER);
         })->where('is_active', true)->get();
 
-        return view('panel.users.create', compact('roles', 'districts', 'partners'));
+        return view('panel.users.create', compact('roles', 'districts', 'cities', 'partners'));
     }
 
     /**
@@ -82,8 +84,8 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
-            'phone' => 'nullable|string|max:20',
-            'employee_code' => 'nullable|string|max:50|unique:users,employee_code',
+            'phone' => 'required|string|max:20',
+            'employee_code' => ['required', 'string', 'size:11', 'unique:users,employee_code', new TurkishIdNumber],
             'partner_id' => 'nullable|exists:users,id',
             'vehicle_type' => 'nullable|string|max:50',
             'vehicle_plate' => 'nullable|string|max:20',
@@ -91,6 +93,11 @@ class UserController extends Controller
             'districts.*' => 'exists:districts,id',
             'primary_district' => 'nullable|exists:districts,id',
             'is_active' => 'boolean',
+        ], [
+            'phone.required' => 'Telefon numarası zorunludur.',
+            'employee_code.required' => 'T.C. Kimlik No zorunludur.',
+            'employee_code.size' => 'T.C. Kimlik No 11 haneli olmalıdır.',
+            'employee_code.unique' => 'Bu T.C. Kimlik No zaten kayıtlı.',
         ]);
 
         $user = User::create([
@@ -149,14 +156,18 @@ class UserController extends Controller
         $this->authorize('manage-users');
 
         $roles = Role::where('is_active', true)->get();
-        $districts = District::where('is_active', true)->orderBy('name')->get();
+        $districts = District::where('is_active', true)->orderBy('city')->orderBy('name')->get();
+        $cities = District::where('is_active', true)->distinct()->orderBy('city')->pluck('city');
         $partners = User::whereHas('role', function ($q) {
             $q->where('name', Role::BUSINESS_PARTNER);
         })->where('is_active', true)->where('id', '!=', $user->id)->get();
 
         $user->load(['courierDistricts', 'authorizedDistricts']);
+        
+        // Mevcut şehirleri grupla
+        $currentCities = $user->authorizedDistricts->groupBy('city')->keys()->toArray();
 
-        return view('panel.users.edit', compact('user', 'roles', 'districts', 'partners'));
+        return view('panel.users.edit', compact('user', 'roles', 'districts', 'cities', 'currentCities', 'partners'));
     }
 
     /**
@@ -171,8 +182,8 @@ class UserController extends Controller
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:6|confirmed',
             'role_id' => 'required|exists:roles,id',
-            'phone' => 'nullable|string|max:20',
-            'employee_code' => ['nullable', 'string', 'max:50', Rule::unique('users')->ignore($user->id)],
+            'phone' => 'required|string|max:20',
+            'employee_code' => ['required', 'string', 'size:11', Rule::unique('users')->ignore($user->id), new TurkishIdNumber],
             'partner_id' => 'nullable|exists:users,id',
             'vehicle_type' => 'nullable|string|max:50',
             'vehicle_plate' => 'nullable|string|max:20',
@@ -180,6 +191,11 @@ class UserController extends Controller
             'districts.*' => 'exists:districts,id',
             'primary_district' => 'nullable|exists:districts,id',
             'is_active' => 'boolean',
+        ], [
+            'phone.required' => 'Telefon numarası zorunludur.',
+            'employee_code.required' => 'T.C. Kimlik No zorunludur.',
+            'employee_code.size' => 'T.C. Kimlik No 11 haneli olmalıdır.',
+            'employee_code.unique' => 'Bu T.C. Kimlik No zaten kayıtlı.',
         ]);
 
         $user->update([
