@@ -24,6 +24,30 @@
     </div>
 @endif
 
+{{-- Gün navigasyonu (önceki / sonraki) --}}
+@php
+    $prevDate = $dateObj->copy()->subDay()->format('Y-m-d');
+    $nextDate = $dateObj->copy()->addDay()->format('Y-m-d');
+    $queryParams = array_filter(['date' => '', 'region_id' => $regionId], fn($v) => $v !== '' && $v !== null);
+@endphp
+<div class="flex items-center justify-center gap-4 mb-4">
+    <a href="{{ route('panel.schedule.index', array_merge($queryParams, ['date' => $prevDate])) }}"
+       class="flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors"
+       title="Önceki gün">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+    </a>
+    <span class="text-lg font-semibold text-gray-900 min-w-[180px] text-center">{{ $dateObj->translatedFormat('d F Y, l') }}</span>
+    <a href="{{ route('panel.schedule.index', array_merge($queryParams, ['date' => $nextDate])) }}"
+       class="flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors"
+       title="Sonraki gün">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+    </a>
+</div>
+
 {{-- Filtreler --}}
 <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
     <form method="GET" action="{{ route('panel.schedule.index') }}" class="flex flex-wrap items-end gap-4">
