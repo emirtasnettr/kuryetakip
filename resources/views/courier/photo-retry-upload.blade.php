@@ -26,9 +26,15 @@
             <div id="photoRetryCameraArea" class="hidden mb-3">
                 <div class="relative rounded-lg overflow-hidden bg-black">
                     <video id="photoRetryVideo" autoplay playsinline muted class="w-full max-h-[280px] object-cover"></video>
+                    <button type="button" id="photoRetrySwitchCam" class="absolute top-2 right-2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70" title="Ön / Arka kamera">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    </button>
                     <button type="button" id="photoRetryCapture" class="absolute bottom-3 left-1/2 -translate-x-1/2 px-6 py-3 bg-white text-black font-semibold rounded-full shadow-lg">Fotoğrafı Çek</button>
                 </div>
-                <button type="button" id="photoRetryCloseCamera" class="mt-2 text-sm text-gray-500 hover:text-gray-700">İptal</button>
+                <div class="mt-2 flex items-center justify-between">
+                    <button type="button" id="photoRetrySwitchCamOuter" class="text-sm text-gray-600 hover:text-gray-900 font-medium">Ön / Arka kamera değiştir</button>
+                    <button type="button" id="photoRetryCloseCamera" class="text-sm text-gray-500 hover:text-gray-700">İptal</button>
+                </div>
             </div>
             <div id="photoRetryPreview" class="hidden mb-3">
                 <img id="photoRetryPreviewImg" src="" alt="Önizleme" class="w-full h-48 object-cover rounded-lg">
@@ -45,10 +51,21 @@
 <script>
 (function() {
     let stream = null;
+    let currentFacing = 'environment';
     function stopCam() {
         if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
         document.getElementById('photoRetryCameraArea').classList.add('hidden');
         document.getElementById('photoRetryVideo').srcObject = null;
+    }
+    async function startCam(facing) {
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        currentFacing = facing || currentFacing;
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacing }, audio: false });
+        document.getElementById('photoRetryVideo').srcObject = stream;
+    }
+    function switchCam() {
+        currentFacing = currentFacing === 'environment' ? 'user' : 'environment';
+        startCam(currentFacing).catch(function() { alert('Kamera değiştirilemedi.'); });
     }
     function setFile(blob) {
         const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
@@ -62,14 +79,16 @@
     }
     document.getElementById('photoRetryOpenCamera').addEventListener('click', async function() {
         try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-            document.getElementById('photoRetryVideo').srcObject = stream;
+            currentFacing = 'environment';
+            await startCam('environment');
             document.getElementById('photoRetryStartArea').classList.add('hidden');
             document.getElementById('photoRetryCameraArea').classList.remove('hidden');
         } catch (e) {
             alert(e.name === 'NotAllowedError' ? 'Kamera izni verin.' : 'Kameraya erişilemiyor.');
         }
     });
+    document.getElementById('photoRetrySwitchCam').addEventListener('click', switchCam);
+    document.getElementById('photoRetrySwitchCamOuter').addEventListener('click', switchCam);
     document.getElementById('photoRetryCloseCamera').addEventListener('click', function() { stopCam(); document.getElementById('photoRetryStartArea').classList.remove('hidden'); });
     document.getElementById('photoRetryCapture').addEventListener('click', function() {
         const video = document.getElementById('photoRetryVideo');

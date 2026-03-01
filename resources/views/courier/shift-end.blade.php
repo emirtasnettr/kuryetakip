@@ -105,11 +105,17 @@
             <div id="cameraArea" class="hidden mb-3">
                 <div class="relative rounded-lg overflow-hidden bg-black">
                     <video id="cameraVideo" autoplay playsinline muted class="w-full max-h-[280px] object-cover"></video>
+                    <button type="button" id="switchCameraBtn" class="absolute top-2 right-2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70" title="Ön / Arka kamera">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    </button>
                     <button type="button" id="captureBtn" class="absolute bottom-3 left-1/2 -translate-x-1/2 px-6 py-3 bg-white text-black font-semibold rounded-full shadow-lg hover:bg-gray-100">
                         Fotoğrafı Çek
                     </button>
                 </div>
-                <button type="button" id="closeCameraBtn" class="mt-2 text-sm text-gray-500 hover:text-gray-700">İptal</button>
+                <div class="mt-2 flex items-center justify-between">
+                    <button type="button" id="switchCameraBtnOuter" class="text-sm text-gray-600 hover:text-gray-900 font-medium">Ön / Arka kamera değiştir</button>
+                    <button type="button" id="closeCameraBtn" class="text-sm text-gray-500 hover:text-gray-700">İptal</button>
+                </div>
             </div>
             
             <div id="photoPreview" class="hidden mb-3">
@@ -257,6 +263,17 @@
     }
     
     let cameraStream = null;
+    let currentFacingMode = 'environment';
+    async function startCamera(facing) {
+        if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+        currentFacingMode = facing || currentFacingMode;
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode }, audio: false });
+        document.getElementById('cameraVideo').srcObject = cameraStream;
+    }
+    function switchCamera() {
+        currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+        startCamera(currentFacingMode).catch(function(e) { alert('Kamera değiştirilemedi.'); });
+    }
     function setPhotoFile(blob) {
         const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
         const dt = new DataTransfer();
@@ -280,9 +297,9 @@
     
     document.getElementById('openCameraBtn').addEventListener('click', async function() {
         hideCameraPermissionError();
+        currentFacingMode = 'environment';
         try {
-            cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-            document.getElementById('cameraVideo').srcObject = cameraStream;
+            await startCamera('environment');
             document.getElementById('photoStartArea').classList.add('hidden');
             document.getElementById('cameraArea').classList.remove('hidden');
         } catch (err) {
@@ -293,6 +310,8 @@
             }
         }
     });
+    document.getElementById('switchCameraBtn').addEventListener('click', switchCamera);
+    document.getElementById('switchCameraBtnOuter').addEventListener('click', switchCamera);
     document.getElementById('closeCameraBtn').addEventListener('click', function() {
         stopCamera();
         document.getElementById('photoStartArea').classList.remove('hidden');

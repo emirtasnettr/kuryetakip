@@ -78,9 +78,10 @@ class ScheduledShiftController extends Controller
         // Tüm bölgeleri al
         $regions = Region::active()->orderBy('city')->orderBy('name')->get();
         
-        // Seçili güne ait tüm vardiyaları bölgeleriyle birlikte getir
+        // Seçili güne ait vardiyalar: devam eden (published) + tamamlanan (completed) hepsi listelensin
         $shifts = ScheduledShift::with(['region', 'activeAssignments.courier'])
             ->whereDate('shift_date', $date->format('Y-m-d'))
+            ->whereIn('status', [ScheduledShift::STATUS_PUBLISHED, ScheduledShift::STATUS_COMPLETED])
             ->orderBy('start_time')
             ->get();
         
