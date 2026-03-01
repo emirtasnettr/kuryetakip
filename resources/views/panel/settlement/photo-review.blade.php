@@ -34,7 +34,7 @@
 
 @if($shifts->isEmpty())
     <div class="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">
-        İncelenecek vardiya başlangıç fotoğrafı yok. Tamamlanmış vardiyalar burada listelenir.
+        İncelenecek vardiya başlangıç fotoğrafı yok. Başlangıç fotoğrafı yükleyen vardiyalar (aktif veya tamamlanmış) burada listelenir.
     </div>
 @else
     <div class="space-y-6">

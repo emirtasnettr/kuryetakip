@@ -78,8 +78,9 @@ class ScheduledShiftController extends Controller
         // Tüm bölgeleri al
         $regions = Region::active()->orderBy('city')->orderBy('name')->get();
         
-        // Seçili güne ait vardiyalar: devam eden (published) + tamamlanan (completed) hepsi listelensin
-        $shifts = ScheduledShift::with(['region', 'activeAssignments.courier'])
+        // Seçili güne ait vardiyalar: devam eden (published) + tamamlanan (completed) hepsi listelensin.
+        // validAssignments kullanılıyor ki tamamlanmış vardiyalarda da atanan kuryeler görünsün (activeAssignments bitişte boşalıyor).
+        $shifts = ScheduledShift::with(['region', 'validAssignments.courier'])
             ->whereDate('shift_date', $date->format('Y-m-d'))
             ->whereIn('status', [ScheduledShift::STATUS_PUBLISHED, ScheduledShift::STATUS_COMPLETED])
             ->orderBy('start_time')
@@ -203,8 +204,8 @@ class ScheduledShiftController extends Controller
             'end_time' => Carbon::parse($scheduledShift->end_time)->format('H:i'),
             'duration' => $scheduledShift->formatted_duration,
             'required_couriers' => $scheduledShift->required_couriers,
-            'assigned_count' => $scheduledShift->assigned_count,
-            'remaining_capacity' => $scheduledShift->remaining_capacity,
+            'assigned_count' => $scheduledShift->validAssignments->count(),
+            'remaining_capacity' => max(0, $scheduledShift->required_couriers - $scheduledShift->validAssignments->count()),
             'status' => $scheduledShift->status,
             'color' => $scheduledShift->color,
             'notes' => $scheduledShift->notes,

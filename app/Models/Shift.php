@@ -367,6 +367,7 @@ class Shift extends Model
             'start_latitude' => $data['latitude'] ?? null,
             'start_longitude' => $data['longitude'] ?? null,
             'start_address' => $data['address'] ?? null,
+            'photo_compliance_status' => self::PHOTO_COMPLIANCE_PENDING,
         ]);
     }
 }

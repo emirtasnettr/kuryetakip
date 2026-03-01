@@ -81,7 +81,7 @@
                 @php
                     $regionShifts = $shiftsByRegion->get($region->id, collect());
                     $regionRequired = $regionShifts->sum('required_couriers');
-                    $regionAssigned = $regionShifts->sum('assigned_count');
+                    $regionAssigned = $regionShifts->sum(fn($s) => $s->validAssignments->count());
                 @endphp
                 
                 @php
@@ -116,7 +116,8 @@
                         <div class="divide-y {{ $isRegionComplete ? 'divide-green-200' : 'divide-red-200' }} max-h-96 overflow-y-auto">
                             @foreach($regionShifts as $shift)
                                 @php
-                                    $isShiftComplete = $shift->assigned_count >= $shift->required_couriers;
+                                    $shiftAssignedCount = $shift->validAssignments->count();
+                                    $isShiftComplete = $shiftAssignedCount >= $shift->required_couriers;
                                     $isShiftEnded = $shift->status === 'completed';
                                 @endphp
                                 <div class="p-3 cursor-pointer transition-colors {{ $isShiftEnded ? 'hover:bg-gray-100 bg-gray-50' : ($isShiftComplete ? 'hover:bg-green-100' : 'hover:bg-red-100') }}" onclick="openCourierModal({{ $shift->id }})">
@@ -137,7 +138,7 @@
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <span class="text-xs px-2 py-0.5 rounded-full font-medium {{ $isShiftEnded ? 'bg-gray-200 text-gray-700' : ($isShiftComplete ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800') }}">
-                                                {{ $shift->assigned_count }}/{{ $shift->required_couriers }}
+                                                {{ $shiftAssignedCount }}/{{ $shift->required_couriers }}
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -145,10 +146,10 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- Atanmış Kuryeler -->
-                                    @if($shift->activeAssignments->isNotEmpty())
+                                    <!-- Atanmış Kuryeler (tamamlanmış vardiyalar dahil tüm atamalar) -->
+                                    @if($shift->validAssignments->isNotEmpty())
                                         <div class="flex flex-wrap gap-1">
-                                            @foreach($shift->activeAssignments as $assignment)
+                                            @foreach($shift->validAssignments as $assignment)
                                                 @php
                                                     // Geç başlama veya başlatmamış kontrolü
                                                     $isLate = false;

@@ -536,15 +536,21 @@ class SettlementController extends Controller
         $courierIds = $user->getAccessibleCouriers()->pluck('id');
         $nameSearch = $request->get('name', '');
 
+        // Başlangıç fotoğrafı yüklenmiş vardiyalar: aktif (hemen inceleme) veya tamamlanmış; sadece başlangıç değerlendirilir
         $query = Shift::query()
             ->whereIn('user_id', $courierIds)
-            ->where('photo_compliance_status', Shift::PHOTO_COMPLIANCE_PENDING)
             ->where(function ($q) {
-                $q->where('status', Shift::STATUS_COMPLETED)
-                    ->orWhere(function ($q2) {
-                        $q2->where('status', Shift::STATUS_ACTIVE)
-                            ->whereHas('photos', fn ($p) => $p->where('type', 'start'));
-                    });
+                $q->where(function ($q1) {
+                    $q1->where('status', Shift::STATUS_COMPLETED)
+                        ->where('photo_compliance_status', Shift::PHOTO_COMPLIANCE_PENDING);
+                })->orWhere(function ($q2) {
+                    $q2->where('status', Shift::STATUS_ACTIVE)
+                        ->whereHas('photos', fn ($p) => $p->where('type', 'start'))
+                        ->where(function ($q3) {
+                            $q3->where('photo_compliance_status', Shift::PHOTO_COMPLIANCE_PENDING)
+                                ->orWhereNull('photo_compliance_status');
+                        });
+                });
             });
 
         if ($nameSearch !== '') {
