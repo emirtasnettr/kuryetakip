@@ -36,7 +36,7 @@ class ScheduledShiftController extends Controller
 
         $query = ScheduledShift::with(['region', 'activeAssignments.courier'])
             ->whereDate('shift_date', $date)
-            ->where('status', '!=', ScheduledShift::STATUS_COMPLETED)
+            ->whereIn('status', [ScheduledShift::STATUS_PUBLISHED, ScheduledShift::STATUS_COMPLETED])
             ->orderBy('region_id')
             ->orderBy('start_time');
 
