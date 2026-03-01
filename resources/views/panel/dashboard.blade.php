@@ -23,7 +23,7 @@
     </a>
     
     <!-- Aktif Vardiya -->
-    <a href="{{ route('panel.shifts.active') }}" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer block">
+    <a href="{{ route('panel.shift-overview') }}" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer block">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-500 text-sm">Aktif Vardiya</p>
@@ -39,7 +39,7 @@
                 </svg>
             </div>
         </div>
-        <p class="text-xs text-gray-400 mt-2">Aktif vardiyaları görüntüle →</p>
+        <p class="text-xs text-gray-400 mt-2">Günlük özeti görüntüle →</p>
     </a>
     
     <!-- Bugün Tamamlanan -->
@@ -75,13 +75,63 @@
     </a>
 </div>
 
+<!-- Bugün Bölge Saat Özeti -->
+<div class="mb-8 bg-white rounded-xl shadow-sm">
+    <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-800">Bugün Bölge Saat Özeti</h2>
+        <a href="{{ route('panel.regions.report') }}?start_date={{ today()->format('Y-m-d') }}&end_date={{ today()->format('Y-m-d') }}" class="text-sm text-indigo-600 hover:underline">Bölge Raporu →</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bölge</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Planlanan</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Gerçekleşen</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Fark</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Durum</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                @forelse($regionReportToday as $row)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-3 text-sm font-medium text-gray-800">{{ $row['region_name'] }}</td>
+                        <td class="px-6 py-3 text-sm text-right">{{ $row['planned_formatted'] }}</td>
+                        <td class="px-6 py-3 text-sm text-right">{{ $row['actual_formatted'] }}</td>
+                        <td class="px-6 py-3 text-sm text-right">
+                            @if($row['diff_minutes'] !== 0)
+                                {{ $row['diff_minutes'] > 0 ? '−' : '+' }}{{ $row['diff_formatted'] }}
+                            @else
+                                —
+                            @endif
+                        </td>
+                        <td class="px-6 py-3 text-center">
+                            @if($row['diff_minutes'] > 0)
+                                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded bg-amber-100 text-amber-800">Eksik</span>
+                            @elseif($row['diff_minutes'] < 0)
+                                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded bg-emerald-100 text-emerald-800">Fazla</span>
+                            @else
+                                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-600">Tam</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="px-6 py-6 text-center text-gray-500 text-sm">Bugün için bölge verisi yok.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     
     <!-- Active Shifts -->
     <div class="bg-white rounded-xl shadow-sm">
         <div class="p-6 border-b border-gray-100 flex items-center justify-between">
             <h2 class="text-lg font-semibold text-gray-800">Aktif Vardiyalar</h2>
-            <a href="{{ route('panel.shifts.active') }}" class="text-sm text-indigo-600 hover:underline">Tümünü Gör</a>
+            <a href="{{ route('panel.shift-overview') }}" class="text-sm text-indigo-600 hover:underline">Tümünü Gör</a>
         </div>
         <div class="p-6">
             @if($activeShifts->isEmpty())
@@ -152,7 +202,6 @@
             @endif
         </div>
     </div>
-    
 </div>
 
 @endsection

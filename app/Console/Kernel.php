@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Vardiya bitiş + 30 dk sonra kurye kapatmadıysa otomatik kapat
+        $schedule->command('shifts:auto-close-overdue')->everyFiveMinutes();
     }
 
     /**

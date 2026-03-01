@@ -6,6 +6,19 @@
 @section('content')
 <div class="p-4">
     
+    @if($assignment)
+        <!-- Vardiya Bilgisi -->
+        <div class="bg-black text-white rounded-xl p-4 mb-6">
+            <p class="text-gray-400 text-sm">Vardiya Bilgisi</p>
+            <p class="text-2xl font-bold mt-1">
+                {{ \Carbon\Carbon::parse($assignment->scheduledShift->start_time)->format('H:i') }} - 
+                {{ \Carbon\Carbon::parse($assignment->scheduledShift->end_time)->format('H:i') }}
+            </p>
+            <p class="text-gray-300 mt-1">{{ $assignment->scheduledShift->region->name ?? 'Bölge' }}</p>
+            <p class="text-gray-400 text-sm mt-2">{{ $assignment->scheduledShift->shift_date->translatedFormat('d F Y, l') }}</p>
+        </div>
+    @endif
+    
     <!-- Info Card -->
     <div class="bg-gray-100 border border-gray-200 rounded-xl p-4 mb-6">
         <div class="flex items-start">
@@ -21,6 +34,11 @@
     
     <form method="POST" action="{{ route('courier.shift.start.submit') }}" enctype="multipart/form-data" id="startForm">
         @csrf
+        
+        <!-- Assignment ID -->
+        @if($assignment)
+            <input type="hidden" name="assignment_id" value="{{ $assignment->id }}">
+        @endif
         
         <!-- Hidden location fields -->
         <input type="hidden" name="latitude" id="latitude">

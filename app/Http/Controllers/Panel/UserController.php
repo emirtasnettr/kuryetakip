@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Panel;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
 use App\Models\District;
 use App\Rules\TurkishIdNumber;
 use Illuminate\Http\Request;
@@ -25,7 +25,8 @@ class UserController extends Controller
     {
         $this->authorize('manage-users');
 
-        $query = User::with(['role', 'partner']);
+        $query = User::with(['role', 'partner'])
+            ->whereHas('role', fn ($q) => $q->where('name', '!=', Role::COURIER));
 
         // Rol filtresi
         if ($request->filled('role')) {
@@ -50,9 +51,63 @@ class UserController extends Controller
         }
 
         $users = $query->orderBy('created_at', 'desc')->paginate(20);
-        $roles = Role::where('is_active', true)->get();
+        $roles = Role::where('is_active', true)->where('name', '!=', Role::COURIER)->get();
 
         return view('panel.users.index', compact('users', 'roles'));
+    }
+
+    /**
+     * Kullanıcı listesini Excel (CSV) olarak indir
+     */
+    public function export(Request $request)
+    {
+        $this->authorize('manage-users');
+
+        $query = User::with(['role', 'partner'])
+            ->whereHas('role', fn ($q) => $q->where('name', '!=', Role::COURIER));
+
+        if ($request->filled('role')) {
+            $query->whereHas('role', fn ($q) => $q->where('name', $request->role));
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('employee_code', 'like', "%{$search}%");
+            });
+        }
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active');
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->get();
+
+        $filename = 'kullanıcılar_' . now()->format('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($users) {
+            $stream = fopen('php://output', 'w');
+            fprintf($stream, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($stream, ['Ad Soyad', 'E-posta', 'Rol', 'İş Ortağı', 'Sicil No', 'Durum', 'Oluşturulma'], ';');
+            foreach ($users as $u) {
+                fputcsv($stream, [
+                    $u->name,
+                    $u->email ?? '',
+                    $u->role?->display_name ?? $u->role?->name ?? '',
+                    $u->partner?->name ?? '',
+                    $u->employee_code ?? '',
+                    $u->is_active ? 'Aktif' : 'Pasif',
+                    $u->created_at?->format('d.m.Y H:i') ?? '',
+                ], ';');
+            }
+            fclose($stream);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     /**

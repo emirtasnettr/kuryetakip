@@ -26,6 +26,7 @@ class ShiftPhoto extends Model
     protected $fillable = [
         'shift_id',
         'type',
+        'is_retry',
         'filename',
         'original_filename',
         'path',
@@ -43,6 +44,7 @@ class ShiftPhoto extends Model
      * Tip dönüşümleri
      */
     protected $casts = [
+        'is_retry' => 'boolean',
         'size' => 'integer',
         'width' => 'integer',
         'height' => 'integer',
@@ -178,13 +180,15 @@ class ShiftPhoto extends Model
         Shift $shift,
         string $type,
         $uploadedFile,
-        string $disk = 'public'
+        string $disk = 'public',
+        bool $isRetry = false
     ): self {
         // Dosya adı oluştur
         $filename = sprintf(
-            '%d_%s_%s.%s',
+            '%d_%s_%s%s.%s',
             $shift->id,
             $type,
+            $isRetry ? 'retry_' : '',
             uniqid(),
             $uploadedFile->getClientOriginalExtension()
         );
@@ -205,6 +209,7 @@ class ShiftPhoto extends Model
         return self::create([
             'shift_id' => $shift->id,
             'type' => $type,
+            'is_retry' => $isRetry,
             'filename' => $filename,
             'original_filename' => $uploadedFile->getClientOriginalName(),
             'path' => $path,

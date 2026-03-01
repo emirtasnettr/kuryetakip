@@ -5,7 +5,7 @@
 @section('content')
 
 <div class="mb-6">
-    <a href="{{ route('panel.couriers.index') }}" class="text-indigo-600 hover:text-indigo-800 flex items-center">
+    <a href="{{ route('panel.couriers.index') }}" class="text-gray-600 hover:text-gray-800 flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
@@ -26,7 +26,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Ad Soyad *</label>
                     <input type="text" name="name" value="{{ old('name') }}" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('name') border-red-500 @enderror">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black @error('name') border-red-500 @enderror">
                     @error('name')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -35,7 +35,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">E-posta *</label>
                     <input type="email" name="email" value="{{ old('email') }}" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('email') border-red-500 @enderror">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black @error('email') border-red-500 @enderror">
                     @error('email')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -45,7 +45,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Telefon *</label>
                     <input type="text" name="phone" value="{{ old('phone') }}" required
                            placeholder="05XX XXX XX XX"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('phone') border-red-500 @enderror">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black @error('phone') border-red-500 @enderror">
                     @error('phone')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -54,7 +54,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Şifre *</label>
                     <input type="password" name="password" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('password') border-red-500 @enderror">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black @error('password') border-red-500 @enderror">
                     @error('password')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -63,7 +63,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Şifre Tekrar *</label>
                     <input type="password" name="password_confirmation" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black">
                 </div>
             </div>
             
@@ -76,7 +76,7 @@
                     <input type="text" name="employee_code" id="tcKimlikNo" value="{{ old('employee_code') }}" required
                            maxlength="11" inputmode="numeric" pattern="[0-9]*"
                            placeholder="11 haneli T.C. Kimlik No"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('employee_code') border-red-500 @enderror">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black @error('employee_code') border-red-500 @enderror">
                     @error('employee_code')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -87,7 +87,7 @@
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Araç Tipi</label>
-                    <select name="vehicle_type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <select name="vehicle_type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black">
                         <option value="">Seçiniz</option>
                         <option value="Motosiklet" {{ old('vehicle_type') == 'Motosiklet' ? 'selected' : '' }}>Motosiklet</option>
                         <option value="Bisiklet" {{ old('vehicle_type') == 'Bisiklet' ? 'selected' : '' }}>Bisiklet</option>
@@ -100,7 +100,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Araç Plakası *</label>
                     <input type="text" name="vehicle_plate" value="{{ old('vehicle_plate') }}" required
                            placeholder="34 ABC 123"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('vehicle_plate') border-red-500 @enderror">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black @error('vehicle_plate') border-red-500 @enderror">
                     @error('vehicle_plate')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -109,7 +109,7 @@
                 @if($partners->isNotEmpty())
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">İş Ortağı</label>
-                    <select name="partner_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <select name="partner_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black">
                         <option value="">Seçiniz (Opsiyonel)</option>
                         @foreach($partners as $partner)
                             <option value="{{ $partner->id }}" {{ old('partner_id') == $partner->id ? 'selected' : '' }}>
@@ -127,69 +127,39 @@
         <div class="mt-6 space-y-4">
             <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Çalışma Bölgeleri *</h3>
             
-            <!-- Şehir Seçimi -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Çalışma Şehri *</label>
-                <select name="city" id="citySelect" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('city') border-red-500 @enderror">
-                    <option value="">Şehir Seçiniz</option>
-                    @foreach($cities as $city)
-                        <option value="{{ $city }}" {{ old('city') == $city ? 'selected' : '' }}>
-                            {{ $city }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('city')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-                <p class="mt-1 text-xs text-gray-500">Sadece 1 şehir seçilebilir</p>
-            </div>
-            
-            <!-- İlçe Seçimi -->
-            <div id="districtsContainer" class="{{ old('city') ? '' : 'hidden' }}">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Çalışma İlçeleri *</label>
-                <p class="text-xs text-gray-500 mb-3">Birden fazla ilçe seçebilirsiniz</p>
-                
-                <div id="districtsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    @foreach($districts as $district)
-                        <label class="district-item flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 {{ old('city') == $district->city ? '' : 'hidden' }}" 
-                               data-city="{{ $district->city }}">
-                            <input type="checkbox" name="district_ids[]" value="{{ $district->id }}"
-                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded district-checkbox"
-                                   {{ in_array($district->id, old('district_ids', [])) ? 'checked' : '' }}>
-                            <span class="ml-2 text-sm text-gray-700">{{ $district->name }}</span>
-                        </label>
-                    @endforeach
+            @if($regions->isEmpty())
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p class="text-yellow-800">
+                        Henüz bölge tanımlanmamış. 
+                        <a href="{{ route('panel.regions.create') }}" class="underline font-medium">Önce bölge oluşturun</a>.
+                    </p>
+                </div>
+            @else
+                <!-- Bölge Seçimi -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Çalışacağı Bölgeler *</label>
+                    <p class="text-xs text-gray-500 mb-3">Birden fazla bölge seçebilirsiniz</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        @foreach($regions as $region)
+                            <label class="region-item flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors
+                                          {{ in_array($region->id, old('region_ids', [])) ? 'bg-green-50 border-green-300' : '' }}">
+                                <input type="checkbox" name="region_ids[]" value="{{ $region->id }}"
+                                       class="h-4 w-4 text-black focus:ring-black border-gray-300 rounded region-checkbox"
+                                       {{ in_array($region->id, old('region_ids', [])) ? 'checked' : '' }}>
+                                <div class="ml-3 flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full" style="background-color: {{ $region->color }}"></span>
+                                    <span class="font-medium text-gray-900">{{ $region->name }}</span>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('region_ids')
+                        <p class="text-sm text-red-600 mt-2">{{ $message }}</p>
+                    @enderror
                 </div>
                 
-                <div id="noDistrictsMessage" class="hidden p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
-                    Bu şehirde tanımlı ilçe bulunmuyor.
-                </div>
-            </div>
-            @error('district_ids')
-                <p class="text-sm text-red-600">{{ $message }}</p>
-            @enderror
-            
-            <!-- Ana Bölge Seçimi -->
-            <div id="primaryDistrictContainer" class="{{ old('city') ? '' : 'hidden' }}">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Ana Çalışma Bölgesi *</label>
-                <select name="primary_district_id" id="primaryDistrictSelect" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('primary_district_id') border-red-500 @enderror">
-                    <option value="">Önce ilçe seçiniz</option>
-                    @foreach($districts as $district)
-                        <option value="{{ $district->id }}" 
-                                data-city="{{ $district->city }}"
-                                class="primary-option {{ old('city') == $district->city ? '' : 'hidden' }}"
-                                {{ old('primary_district_id') == $district->id ? 'selected' : '' }}>
-                            {{ $district->name }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('primary_district_id')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-                <p class="mt-1 text-xs text-gray-500">Seçilen ilçelerden birini ana bölge olarak belirleyin</p>
-            </div>
+            @endif
         </div>
         
         <!-- Submit -->
@@ -197,7 +167,7 @@
             <a href="{{ route('panel.couriers.index') }}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                 İptal
             </a>
-            <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+            <button type="submit" class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800" {{ $regions->isEmpty() ? 'disabled' : '' }}>
                 Kurye Oluştur
             </button>
         </div>
@@ -217,35 +187,28 @@
         const tcHint = document.getElementById('tcHint');
         
         function validateTcKimlikNo(tcno) {
-            // Boşsa doğrulama yapma
             if (!tcno || tcno.length === 0) {
                 return { valid: true, message: '' };
             }
             
-            // Sadece rakam kontrolü
             if (!/^\d+$/.test(tcno)) {
                 return { valid: false, message: 'T.C. Kimlik No sadece rakamlardan oluşmalıdır' };
             }
             
-            // 11 haneden az ise henüz tamamlanmamış
             if (tcno.length < 11) {
                 return { valid: false, message: 'T.C. Kimlik No 11 haneli olmalıdır (' + tcno.length + '/11)' };
             }
             
-            // 11 haneden fazla
             if (tcno.length > 11) {
                 return { valid: false, message: 'T.C. Kimlik No 11 haneli olmalıdır' };
             }
             
-            // İlk hane 0 olamaz
             if (tcno[0] === '0') {
                 return { valid: false, message: 'T.C. Kimlik No\'nun ilk hanesi 0 olamaz' };
             }
             
-            // Matematiksel doğrulama
             const digits = tcno.split('').map(Number);
             
-            // 10. hane kontrolü: ((1+3+5+7+9)*7 - (2+4+6+8)) % 10 = 10. hane
             const oddSum = digits[0] + digits[2] + digits[4] + digits[6] + digits[8];
             const evenSum = digits[1] + digits[3] + digits[5] + digits[7];
             let tenthDigit = ((oddSum * 7) - evenSum) % 10;
@@ -255,7 +218,6 @@
                 return { valid: false, message: 'Hatalı T.C. Kimlik No' };
             }
             
-            // 11. hane kontrolü: (1+2+3+4+5+6+7+8+9+10) % 10 = 11. hane
             const sumFirst10 = digits.slice(0, 10).reduce((a, b) => a + b, 0);
             const eleventhDigit = sumFirst10 % 10;
             
@@ -267,8 +229,8 @@
         }
         
         function updateTcValidation() {
-            const value = tcInput.value.replace(/\D/g, ''); // Sadece rakamları al
-            tcInput.value = value; // Rakam dışı karakterleri temizle
+            const value = tcInput.value.replace(/\D/g, '');
+            tcInput.value = value;
             
             const result = validateTcKimlikNo(value);
             
@@ -299,100 +261,27 @@
             setTimeout(updateTcValidation, 0);
         });
         
-        // Sayfa yüklendiğinde mevcut değeri kontrol et
         if (tcInput.value) {
             updateTcValidation();
         }
         
-        // Şehir/İlçe seçimi
-        const citySelect = document.getElementById('citySelect');
-        const districtsContainer = document.getElementById('districtsContainer');
-        const primaryDistrictContainer = document.getElementById('primaryDistrictContainer');
-        const districtItems = document.querySelectorAll('.district-item');
-        const primaryOptions = document.querySelectorAll('.primary-option');
-        const primaryDistrictSelect = document.getElementById('primaryDistrictSelect');
-        const noDistrictsMessage = document.getElementById('noDistrictsMessage');
+        // Bölge seçimi
+        const regionCheckboxes = document.querySelectorAll('.region-checkbox');
         
-        // Şehir değiştiğinde
-        citySelect.addEventListener('change', function() {
-            const selectedCity = this.value;
-            
-            if (!selectedCity) {
-                districtsContainer.classList.add('hidden');
-                primaryDistrictContainer.classList.add('hidden');
-                return;
-            }
-            
-            districtsContainer.classList.remove('hidden');
-            primaryDistrictContainer.classList.remove('hidden');
-            
-            // İlçeleri filtrele
-            let visibleCount = 0;
-            districtItems.forEach(item => {
-                const checkbox = item.querySelector('input[type="checkbox"]');
-                if (item.dataset.city === selectedCity) {
-                    item.classList.remove('hidden');
-                    visibleCount++;
+        function updateRegionStyles() {
+            document.querySelectorAll('.region-item').forEach(item => {
+                const checkbox = item.querySelector('.region-checkbox');
+                if (checkbox.checked) {
+                    item.classList.add('bg-green-50', 'border-green-300');
                 } else {
-                    item.classList.add('hidden');
-                    checkbox.checked = false; // Diğer şehirlerin seçimlerini temizle
+                    item.classList.remove('bg-green-50', 'border-green-300');
                 }
             });
-            
-            // İlçe yoksa mesaj göster
-            if (visibleCount === 0) {
-                noDistrictsMessage.classList.remove('hidden');
-            } else {
-                noDistrictsMessage.classList.add('hidden');
-            }
-            
-            // Ana bölge seçeneklerini filtrele
-            primaryOptions.forEach(option => {
-                if (option.dataset.city === selectedCity) {
-                    option.classList.remove('hidden');
-                    option.disabled = false;
-                } else {
-                    option.classList.add('hidden');
-                    option.disabled = true;
-                }
-            });
-            
-            // Ana bölge seçimini sıfırla
-            primaryDistrictSelect.value = '';
-            updatePrimaryOptions();
-        });
-        
-        // İlçe checkbox'ları değiştiğinde ana bölge seçeneklerini güncelle
-        document.querySelectorAll('.district-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', updatePrimaryOptions);
-        });
-        
-        function updatePrimaryOptions() {
-            const selectedDistrictIds = Array.from(document.querySelectorAll('.district-checkbox:checked'))
-                .map(cb => cb.value);
-            
-            primaryOptions.forEach(option => {
-                if (option.value && !option.classList.contains('hidden')) {
-                    if (selectedDistrictIds.includes(option.value)) {
-                        option.disabled = false;
-                        option.style.display = '';
-                    } else {
-                        option.disabled = true;
-                        option.style.display = 'none';
-                    }
-                }
-            });
-            
-            // Eğer seçili ana bölge artık seçili ilçeler arasında değilse sıfırla
-            if (!selectedDistrictIds.includes(primaryDistrictSelect.value)) {
-                primaryDistrictSelect.value = '';
-            }
         }
         
-        // Sayfa yüklendiğinde mevcut durumu kontrol et
-        if (citySelect.value) {
-            citySelect.dispatchEvent(new Event('change'));
-        }
+        regionCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateRegionStyles);
+        });
     });
 </script>
 @endpush

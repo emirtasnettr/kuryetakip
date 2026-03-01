@@ -4,6 +4,13 @@
 
 @section('content')
 
+<div class="mb-4 flex justify-end">
+    <a href="{{ route('panel.shifts.export', request()->query()) }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+        Excel İndir
+    </a>
+</div>
+
 <!-- Filters -->
 <div class="bg-white rounded-xl shadow-sm p-4 md:p-6 mb-6">
     <form method="GET" action="{{ route('panel.shifts.index') }}">
@@ -77,11 +84,15 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kurye</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sicil No</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İlçe</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bölge</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Başlangıç</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bitiş</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Süre</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paket</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Foto uyumluluk</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notlar</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                 </tr>
@@ -92,19 +103,19 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                                    <span class="text-indigo-600 font-medium text-sm">{{ strtoupper(substr($shift->user->name, 0, 1)) }}</span>
+                                    <span class="text-indigo-600 font-medium text-sm">{{ strtoupper(substr($shift->user->name ?? '', 0, 1)) }}</span>
                                 </div>
                                 <div class="ml-3">
                                     <p class="text-sm font-medium text-gray-900">{{ $shift->user->name }}</p>
-                                    @if($shift->user->employee_code)
-                                        <p class="text-xs text-gray-500">{{ $shift->user->employee_code }}</p>
+                                    @if($shift->user->email)
+                                        <p class="text-xs text-gray-500">{{ $shift->user->email }}</p>
                                     @endif
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $shift->district?->name ?? '-' }}
-                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $shift->user->employee_code ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $shift->district?->name ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $shift->region?->name ?? '-' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ $shift->started_at->format('d.m.Y H:i') }}
                         </td>
@@ -117,16 +128,45 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
                             {{ $shift->package_count ?? '-' }}
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            @if($shift->status === 'completed' && $shift->photo_compliance_status)
+                                @if($shift->photo_compliance_status === \App\Models\Shift::PHOTO_COMPLIANCE_APPROVED)
+                                    <span class="text-green-600">Onaylı</span>
+                                @elseif($shift->photo_compliance_status === \App\Models\Shift::PHOTO_COMPLIANCE_NO_BONUS)
+                                    <span class="text-amber-600">Prim yok</span>
+                                @elseif($shift->photo_compliance_status === \App\Models\Shift::PHOTO_COMPLIANCE_RE_REQUESTED)
+                                    <span class="text-orange-600">Tekrar istenecek</span>
+                                @else
+                                    <span class="text-gray-500">Beklemede</span>
+                                @endif
+                            @else
+                                —
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs" title="{{ $shift->notes ?? '' }}">
+                            @if($shift->notes)
+                                <span class="line-clamp-2">{{ $shift->notes }}</span>
+                            @else
+                                —
+                            @endif
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs font-medium rounded-full
-                                {{ $shift->status == 'active' ? 'bg-green-100 text-green-800' : '' }}
-                                {{ $shift->status == 'completed' ? 'bg-blue-100 text-blue-800' : '' }}
-                                {{ $shift->status == 'cancelled' ? 'bg-red-100 text-red-800' : '' }}
-                            ">
-                                {{ $shift->status == 'active' ? 'Aktif' : '' }}
-                                {{ $shift->status == 'completed' ? 'Tamamlandı' : '' }}
-                                {{ $shift->status == 'cancelled' ? 'İptal' : '' }}
-                            </span>
+                            <div class="flex flex-col gap-1">
+                                <span class="px-2 py-1 text-xs font-medium rounded-full
+                                    {{ $shift->status == 'active' ? 'bg-green-100 text-green-800' : '' }}
+                                    {{ $shift->status == 'completed' ? 'bg-blue-100 text-blue-800' : '' }}
+                                    {{ $shift->status == 'cancelled' ? 'bg-red-100 text-red-800' : '' }}
+                                ">
+                                    {{ $shift->status == 'active' ? 'Aktif' : '' }}
+                                    {{ $shift->status == 'completed' ? 'Tamamlandı' : '' }}
+                                    {{ $shift->status == 'cancelled' ? 'İptal' : '' }}
+                                </span>
+                                @if($shift->auto_closed_at)
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-800" title="Sistem tarafından otomatik kapatıldı">
+                                        Sistem tarafından kapatıldı
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                             <a href="{{ route('panel.shifts.show', $shift) }}" class="text-indigo-600 hover:text-indigo-900">
@@ -136,7 +176,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                        <td colspan="12" class="px-6 py-12 text-center text-gray-500">
                             Vardiya kaydı bulunamadı.
                         </td>
                     </tr>
@@ -173,7 +213,8 @@
                     </div>
                     <div class="ml-3">
                         <p class="font-medium text-gray-900">{{ $shift->user->name }}</p>
-                        <p class="text-xs text-gray-500">{{ $shift->district?->name ?? 'Bölge belirtilmedi' }}</p>
+                        <p class="text-xs text-gray-500">{{ $shift->user->employee_code ? 'Sicil: ' . $shift->user->employee_code : '' }}{{ $shift->user->employee_code && $shift->user->phone ? ' · ' : '' }}{{ $shift->user->phone ?? '' }}</p>
+                        <p class="text-xs text-gray-500">{{ $shift->district?->name ?? '-' }} / {{ $shift->region?->name ?? '-' }}</p>
                     </div>
                 </div>
                 <span class="px-2 py-1 text-xs font-medium rounded-full
@@ -185,30 +226,47 @@
                     {{ $shift->status == 'completed' ? 'Tamamlandı' : '' }}
                     {{ $shift->status == 'cancelled' ? 'İptal' : '' }}
                 </span>
+                @if($shift->auto_closed_at)
+                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-800">Sistem tarafından kapatıldı</span>
+                @endif
             </div>
             
             <!-- Info Grid -->
-            <div class="grid grid-cols-3 gap-3 text-center bg-gray-50 rounded-lg p-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center bg-gray-50 rounded-lg p-3">
                 <div>
                     <p class="text-xs text-gray-500">Başlangıç</p>
-                    <p class="text-sm font-medium text-gray-800">{{ $shift->started_at->format('H:i') }}</p>
-                    <p class="text-xs text-gray-400">{{ $shift->started_at->format('d.m.Y') }}</p>
+                    <p class="text-sm font-medium text-gray-800">{{ $shift->started_at->format('d.m.Y H:i') }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">Bitiş</p>
+                    <p class="text-sm font-medium text-gray-800">{{ $shift->ended_at ? $shift->ended_at->format('d.m.Y H:i') : '—' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500">Süre</p>
                     <p class="text-sm font-medium text-gray-800">{{ $shift->formatted_duration }}</p>
-                    @if($shift->ended_at)
-                        <p class="text-xs text-gray-400">{{ $shift->ended_at->format('H:i') }}'e kadar</p>
-                    @else
-                        <p class="text-xs text-green-500">Devam ediyor</p>
-                    @endif
                 </div>
                 <div>
                     <p class="text-xs text-gray-500">Paket</p>
                     <p class="text-sm font-bold text-indigo-600">{{ $shift->package_count ?? '-' }}</p>
-                    <p class="text-xs text-gray-400">adet</p>
                 </div>
             </div>
+            @if($shift->status === 'completed' && $shift->photo_compliance_status)
+            <p class="text-xs text-gray-500 mt-2">
+                Foto uyumluluk:
+                @if($shift->photo_compliance_status === \App\Models\Shift::PHOTO_COMPLIANCE_APPROVED)
+                    <span class="text-green-600">Onaylı</span>
+                @elseif($shift->photo_compliance_status === \App\Models\Shift::PHOTO_COMPLIANCE_NO_BONUS)
+                    <span class="text-amber-600">Prim yok</span>
+                @elseif($shift->photo_compliance_status === \App\Models\Shift::PHOTO_COMPLIANCE_RE_REQUESTED)
+                    <span class="text-orange-600">Tekrar istenecek</span>
+                @else
+                    <span class="text-gray-500">Beklemede</span>
+                @endif
+            </p>
+            @endif
+            @if($shift->notes)
+            <p class="text-xs text-gray-600 mt-1 line-clamp-2" title="{{ $shift->notes }}">{{ $shift->notes }}</p>
+            @endif
             
             <!-- Footer: Detay Arrow -->
             <div class="flex items-center justify-end mt-3 text-indigo-600 text-sm">

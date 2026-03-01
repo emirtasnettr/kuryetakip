@@ -94,6 +94,24 @@ class User extends Authenticatable
     }
 
     /**
+     * Kuryenin çalışma bölgeleri (yeni bölge sistemi)
+     */
+    public function courierRegions(): BelongsToMany
+    {
+        return $this->belongsToMany(Region::class, 'courier_regions')
+            ->withPivot(['is_primary'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Kuryenin ana çalışma bölgesi
+     */
+    public function primaryRegion(): BelongsTo
+    {
+        return $this->belongsTo(Region::class, 'primary_region_id');
+    }
+
+    /**
      * Kullanıcının yetkili olduğu ilçeler (operasyon için)
      */
     public function authorizedDistricts(): BelongsToMany
@@ -109,6 +127,14 @@ class User extends Authenticatable
     public function shifts(): HasMany
     {
         return $this->hasMany(Shift::class);
+    }
+
+    /**
+     * Kuryenin masraf talepleri
+     */
+    public function expenseRequests(): HasMany
+    {
+        return $this->hasMany(ExpenseRequest::class);
     }
 
     // ==================== ROL KONTROL METODLARİ ====================

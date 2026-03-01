@@ -159,11 +159,11 @@
                         </svg>
                         <span class="text-xs mt-1">Ana Sayfa</span>
                     </a>
-                    <a href="{{ route('courier.shifts') }}" class="flex flex-col items-center justify-center {{ request()->routeIs('courier.shifts') ? 'text-black' : 'text-gray-400' }}">
+                    <a href="{{ route('courier.assignments') }}" class="flex flex-col items-center justify-center {{ request()->routeIs('courier.assignments') ? 'text-black' : 'text-gray-400' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span class="text-xs mt-1">Vardiyalar</span>
+                        <span class="text-xs mt-1">Vardiya</span>
                     </a>
                     <a href="{{ route('courier.profile') }}" class="flex flex-col items-center justify-center {{ request()->routeIs('courier.profile') ? 'text-black' : 'text-gray-400' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

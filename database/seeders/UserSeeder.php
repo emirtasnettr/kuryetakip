@@ -86,8 +86,8 @@ class UserSeeder extends Seeder
 
         // Kuryeler
         $courierRole = Role::where('name', Role::COURIER)->first();
-        $kadikoy = District::where('code', 'KDK')->first();
-        $atasehir = District::where('code', 'ATS')->first();
+        $kadikoy = District::where('name', 'Kadıköy')->where('city', 'İstanbul')->first();
+        $atasehir = District::where('name', 'Ataşehir')->where('city', 'İstanbul')->first();
 
         // Kurye 1
         $courier1 = User::updateOrCreate(
@@ -105,11 +105,13 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // Kurye 1'e ilçe ata
-        $courier1->courierDistricts()->sync([
-            $kadikoy->id => ['is_primary' => true, 'assigned_by' => $manager->id],
-            $atasehir->id => ['is_primary' => false, 'assigned_by' => $manager->id],
-        ]);
+        // Kurye 1'e ilçe ata (ilçeler varsa)
+        if ($kadikoy && $atasehir && $manager) {
+            $courier1->courierDistricts()->sync([
+                $kadikoy->id => ['is_primary' => true, 'assigned_by' => $manager->id],
+                $atasehir->id => ['is_primary' => false, 'assigned_by' => $manager->id],
+            ]);
+        }
 
         // Kurye 2
         $courier2 = User::updateOrCreate(
@@ -127,9 +129,11 @@ class UserSeeder extends Seeder
         );
 
         // Kurye 2'ye ilçe ata
-        $courier2->courierDistricts()->sync([
-            $atasehir->id => ['is_primary' => true, 'assigned_by' => $manager->id],
-        ]);
+        if ($atasehir && $manager) {
+            $courier2->courierDistricts()->sync([
+                $atasehir->id => ['is_primary' => true, 'assigned_by' => $manager->id],
+            ]);
+        }
 
         $this->command->info('Test kullanıcıları oluşturuldu:');
         $this->command->info('- admin@kuryetakip.com / password (Sistem Yöneticisi)');

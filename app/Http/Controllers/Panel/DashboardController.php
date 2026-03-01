@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Panel;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Panel\RegionReportController;
 use App\Models\Shift;
 use App\Models\User;
 use App\Models\Role;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -59,10 +61,16 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
+        // Bugüne ait bölge raporu (planlanan vs gerçekleşen saat)
+        $regionReportController = new RegionReportController();
+        $today = Carbon::today();
+        $regionReportToday = $regionReportController->buildReportRows($today, $today);
+
         return view('panel.dashboard', compact(
             'todayStats',
             'activeShifts',
-            'completedShifts'
+            'completedShifts',
+            'regionReportToday'
         ));
     }
 }

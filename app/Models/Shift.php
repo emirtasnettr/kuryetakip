@@ -29,6 +29,7 @@ class Shift extends Model
     protected $fillable = [
         'user_id',
         'district_id',
+        'region_id',
         'status',
         'started_at',
         'start_latitude',
@@ -42,7 +43,15 @@ class Shift extends Model
         'total_minutes',
         'notes',
         'admin_notes',
+        'auto_closed_at',
+        'photo_compliance_status',
     ];
+
+    // Vardiya uyumluluk durumları (hakediş)
+    public const PHOTO_COMPLIANCE_PENDING = 'pending_review';
+    public const PHOTO_COMPLIANCE_APPROVED = 'bonus_approved';
+    public const PHOTO_COMPLIANCE_NO_BONUS = 'no_bonus';      // İncelendi, prim verilmedi
+    public const PHOTO_COMPLIANCE_RE_REQUESTED = 're_requested';
 
     /**
      * Tip dönüşümleri
@@ -56,6 +65,7 @@ class Shift extends Model
         'end_longitude' => 'decimal:8',
         'package_count' => 'integer',
         'total_minutes' => 'integer',
+        'auto_closed_at' => 'datetime',
     ];
 
     // ==================== İLİŞKİLER ====================
@@ -82,6 +92,14 @@ class Shift extends Model
     public function district(): BelongsTo
     {
         return $this->belongsTo(District::class);
+    }
+
+    /**
+     * Vardiyanın yapıldığı bölge (hakediş bölge ayarları için)
+     */
+    public function region(): BelongsTo
+    {
+        return $this->belongsTo(Region::class);
     }
 
     /**
@@ -165,11 +183,37 @@ class Shift extends Model
             'package_count' => $data['package_count'] ?? null,
             'total_minutes' => $totalMinutes,
             'notes' => $data['notes'] ?? $this->notes,
+            'photo_compliance_status' => self::PHOTO_COMPLIANCE_PENDING,
         ]);
     }
 
     /**
-     * Vardiyayı iptal et
+     * Vardiyayı sistem tarafından otomatik kapat (bitiş + 30 dk sonra kurye kapatmadıysa)
+     * Paket sayısı 0 yazılır.
+     */
+    public function completeBySystem(): bool
+    {
+        if (!$this->isActive()) {
+            return false;
+        }
+
+        $endTime = now();
+        $totalMinutes = $this->started_at->diffInMinutes($endTime);
+
+        return $this->update([
+            'status' => self::STATUS_COMPLETED,
+            'ended_at' => $endTime,
+            'package_count' => 0,
+            'total_minutes' => $totalMinutes,
+            'auto_closed_at' => $endTime,
+            'photo_compliance_status' => self::PHOTO_COMPLIANCE_PENDING,
+            'admin_notes' => ($this->admin_notes ? $this->admin_notes . "\n\n" : '')
+                . '[Sistem tarafından otomatik kapatıldı - ' . $endTime->format('d.m.Y H:i') . ']',
+        ]);
+    }
+
+    /**
+     * Vardiya iptal et
      */
     public function cancel(?string $reason = null): bool
     {
@@ -282,6 +326,24 @@ class Shift extends Model
     }
 
     /**
+     * Vardiya uyumluluk incelemesi bekleyen vardiyalar
+     */
+    public function scopePhotoCompliancePending($query)
+    {
+        return $query->whereIn('photo_compliance_status', [self::PHOTO_COMPLIANCE_PENDING, self::PHOTO_COMPLIANCE_RE_REQUESTED]);
+    }
+
+    /**
+     * Hakediş saatlik kazanç (total_minutes * saatlik ücret / 60)
+     */
+    public function getHourlyEarningsAttribute(): float
+    {
+        $settings = \App\Models\SettlementSetting::get();
+        $minutes = $this->total_minutes ?? 0;
+        return round(($minutes / 60) * (float) $settings->hourly_rate, 2);
+    }
+
+    /**
      * Kuryeye göre filtrele
      */
     public function scopeForCourier($query, int $userId)
@@ -299,6 +361,7 @@ class Shift extends Model
         return self::create([
             'user_id' => $courier->id,
             'district_id' => $data['district_id'] ?? null,
+            'region_id' => $data['region_id'] ?? null,
             'status' => self::STATUS_ACTIVE,
             'started_at' => now(),
             'start_latitude' => $data['latitude'] ?? null,

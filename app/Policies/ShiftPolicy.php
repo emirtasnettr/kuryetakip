@@ -200,12 +200,25 @@ class ShiftPolicy
     }
 
     /**
-     * Paket sayısını güncelleme yetkisi (sadece sistem yöneticisi)
+     * Paket sayısını güncelleme yetkisi (süre içinde: aktif veya tamamlanmış vardiyada)
+     * Sistem yöneticisi ve operasyon personeli yapabilir.
      */
     public function updatePackageCount(User $user, Shift $shift): bool
     {
-        // before() metodu zaten sistem yöneticisi için true döndürüyor
-        // Bu metot sadece diğer kullanıcılar için false döndürecek
+        if ($user->isOperationStaff() || $user->isSystemAdmin()) {
+            return $this->view($user, $shift);
+        }
+        return false;
+    }
+
+    /**
+     * Kuryeye ek çalışma saati ekleme / bitiş saatini uzatma yetkisi
+     */
+    public function extendHours(User $user, Shift $shift): bool
+    {
+        if ($user->isOperationStaff() || $user->isSystemAdmin()) {
+            return $this->view($user, $shift);
+        }
         return false;
     }
 }

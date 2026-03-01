@@ -30,15 +30,22 @@
                         <p class="text-gray-500">{{ $shift->user->employee_code ?? $shift->user->email }}</p>
                     </div>
                 </div>
-                <span class="px-3 py-1 text-sm font-medium rounded-full
-                    {{ $shift->status == 'active' ? 'bg-green-100 text-green-800' : '' }}
-                    {{ $shift->status == 'completed' ? 'bg-blue-100 text-blue-800' : '' }}
-                    {{ $shift->status == 'cancelled' ? 'bg-red-100 text-red-800' : '' }}
-                ">
-                    {{ $shift->status == 'active' ? 'Aktif' : '' }}
-                    {{ $shift->status == 'completed' ? 'Tamamlandı' : '' }}
-                    {{ $shift->status == 'cancelled' ? 'İptal' : '' }}
-                </span>
+                <div class="flex flex-col items-end gap-2">
+                    <span class="px-3 py-1 text-sm font-medium rounded-full
+                        {{ $shift->status == 'active' ? 'bg-green-100 text-green-800' : '' }}
+                        {{ $shift->status == 'completed' ? 'bg-blue-100 text-blue-800' : '' }}
+                        {{ $shift->status == 'cancelled' ? 'bg-red-100 text-red-800' : '' }}
+                    ">
+                        {{ $shift->status == 'active' ? 'Aktif' : '' }}
+                        {{ $shift->status == 'completed' ? 'Tamamlandı' : '' }}
+                        {{ $shift->status == 'cancelled' ? 'İptal' : '' }}
+                    </span>
+                    @if($shift->auto_closed_at)
+                        <span class="px-3 py-1 text-sm font-medium rounded-full bg-amber-100 text-amber-800" title="{{ $shift->auto_closed_at->format('d.m.Y H:i') }}">
+                            Sistem tarafından kapatıldı ({{ $shift->auto_closed_at->format('d.m.Y H:i') }})
+                        </span>
+                    @endif
+                </div>
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -141,23 +148,52 @@
             </div>
         </div>
         
-        <!-- Photos -->
+        <!-- Vardiya başlangıç ve bitiş fotoğrafları (zorunlu alanlar) -->
         @if($shift->photos->isNotEmpty())
         <div class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Fotoğraflar</h3>
-            
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                @foreach($shift->photos as $photo)
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Vardiya Fotoğrafları</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @php $startPhoto = $shift->startPhotos->first(); @endphp
+                @if($startPhoto)
+                <div>
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Vardiya Başlangıç Fotoğrafı</h4>
                     <div class="relative group">
-                        <img src="{{ $photo->url }}" alt="{{ $photo->type_display }}" 
-                             class="w-full h-32 object-cover rounded-lg cursor-pointer"
-                             onclick="window.open('{{ $photo->url }}', '_blank')">
-                        <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs py-1 px-2 rounded-b-lg">
-                            {{ $photo->type_display }}
+                        <img src="{{ $startPhoto->url }}" alt="Vardiya başlangıç" 
+                             class="w-full h-48 object-cover rounded-lg cursor-pointer border border-gray-200"
+                             onclick="window.open('{{ $startPhoto->url }}', '_blank')">
+                        <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs py-2 px-3 rounded-b-lg">
+                            Başlangıç
                         </div>
                     </div>
-                @endforeach
+                </div>
+                @endif
+                @php $endPhoto = $shift->endPhotos->first(); @endphp
+                @if($endPhoto)
+                <div>
+                    <h4 class="text-sm font-medium text-gray-600 mb-2">Vardiya Bitiş Fotoğrafı</h4>
+                    <div class="relative group">
+                        <img src="{{ $endPhoto->url }}" alt="Vardiya bitiş" 
+                             class="w-full h-48 object-cover rounded-lg cursor-pointer border border-gray-200"
+                             onclick="window.open('{{ $endPhoto->url }}', '_blank')">
+                        <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs py-2 px-3 rounded-b-lg">
+                            Bitiş
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div>
+            @if($shift->photos->count() > 2)
+            <div class="mt-4 pt-4 border-t border-gray-100">
+                <p class="text-sm text-gray-500 mb-2">Diğer fotoğraflar</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    @foreach($shift->photos->skip(2) as $photo)
+                        <a href="{{ $photo->url }}" target="_blank" class="block">
+                            <img src="{{ $photo->url }}" alt="{{ $photo->type_display }}" class="w-full h-24 object-cover rounded-lg border border-gray-200">
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
         @endif
         
@@ -213,6 +249,32 @@
             </form>
             @endcan
         </div>
+        
+        <!-- Ek çalışma saati / Bitiş saatini uzat -->
+        @can('extendHours', $shift)
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Ek Çalışma Saati Ekle</h3>
+            <p class="text-sm text-gray-500 mb-4">Kuryenin fiili bitiş saatini güncelleyerek ek süre ekleyebilirsiniz. Süre içinde düzenlenebilir.</p>
+            <form action="{{ route('panel.shifts.extend-hours', $shift) }}" method="POST">
+                @csrf
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Yeni Bitiş Tarihi</label>
+                    <input type="date" name="end_date" required
+                           value="{{ ($shift->ended_at ?? now())->format('Y-m-d') }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Yeni Bitiş Saati</label>
+                    <input type="time" name="end_time" required
+                           value="{{ ($shift->ended_at ?? now())->format('H:i') }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 transition-colors">
+                    Bitiş Saatini Güncelle / Ek Süre Ekle
+                </button>
+            </form>
+        </div>
+        @endcan
         
         <!-- Actions -->
         @if($shift->isActive())

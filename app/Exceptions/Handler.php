@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
@@ -35,9 +36,19 @@ class Handler extends ExceptionHandler
             //
         });
 
-        // API istekleri için özel 404 yanıtı
+        // Model bulunamadı (örn. silinmiş vardiya) — JSON isteklerinde anlamlı 404
+        $this->renderable(function (ModelNotFoundException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kayıt bulunamadı. Silinmiş veya mevcut olmayabilir.',
+                ], 404);
+            }
+        });
+
+        // Diğer 404 istekleri (API ve JSON bekleyen panel istekleri)
         $this->renderable(function (NotFoundHttpException $e, $request) {
-            if ($request->is('api/*')) {
+            if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Kayıt bulunamadı.',
