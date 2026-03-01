@@ -161,10 +161,11 @@ Route::prefix('panel')->name('panel.')->group(function () {
             Route::post('/download-zip', [MediaFileController::class, 'downloadZip'])->name('download-zip');
         });
 
-        // Vardiya Planlama (Takvim)
+        // Vardiya Planlama
         Route::prefix('schedule')->name('schedule.')->group(function () {
-            // Ana takvim görünümü
-            Route::get('/', [ScheduledShiftController::class, 'calendar'])->name('calendar');
+            Route::get('/', [ScheduledShiftController::class, 'index'])->name('index');
+            // Tek vardiya detay sayfası (HTML)
+            Route::get('/shifts/{scheduledShift}/page', [ScheduledShiftController::class, 'showPage'])->name('shifts.page')->whereNumber('scheduledShift');
             
             // Takvim eventleri (AJAX)
             Route::get('/events', [ScheduledShiftController::class, 'events'])->name('events');

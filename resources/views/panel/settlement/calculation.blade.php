@@ -24,8 +24,17 @@
             <input type="date" name="end_date" id="end_date" value="{{ $endDate }}"
                    class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
         </div>
+        <div>
+            <label for="name_search" class="block text-sm font-medium text-gray-700 mb-1">Kurye adı</label>
+            <input type="text" name="name" id="name_search" value="{{ old('name', $nameSearch ?? '') }}"
+                   placeholder="İsimle ara…"
+                   class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 w-full min-w-[160px]">
+        </div>
         <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Hesapla</button>
-        <a href="{{ route('panel.settlement.calculation.export', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+        @if(!empty($nameSearch ?? ''))
+            <a href="{{ route('panel.settlement.calculation', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="px-3 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg text-sm">Filtreyi temizle</a>
+        @endif
+        <a href="{{ route('panel.settlement.calculation.export', array_filter(['start_date' => $startDate, 'end_date' => $endDate, 'name' => $nameSearch ?? ''])) }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             Excel İndir
         </a>
@@ -145,6 +154,9 @@
                 @csrf
                 <input type="hidden" name="start_date" value="{{ $startDate }}">
                 <input type="hidden" name="end_date" value="{{ $endDate }}">
+                @if(!empty($nameSearch ?? ''))
+                    <input type="hidden" name="name" value="{{ $nameSearch }}">
+                @endif
                 <div class="space-y-4">
                     <div>
                         <label for="extra_bonus_courier_trigger" class="block text-sm font-medium text-gray-700 mb-1">Kurye <span class="text-red-500">*</span></label>

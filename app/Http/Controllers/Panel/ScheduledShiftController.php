@@ -24,21 +24,46 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class ScheduledShiftController extends Controller
 {
     /**
-     * Takvim görünümü (ana sayfa)
+     * Vardiya planlama – basit liste (varsayılan sayfa)
      */
-    public function calendar(Request $request)
+    public function index(Request $request)
     {
-        // Aktif bölgeleri getir
-        $regions = Region::active()
-            ->orderBy('name')
-            ->get();
-        
-        return view('panel.schedule.calendar', compact('regions'));
+        $date = $request->get('date', now()->format('Y-m-d'));
+        $regionId = $request->get('region_id');
+        $dateObj = Carbon::parse($date);
+
+        $regions = Region::active()->orderBy('name')->get();
+
+        $query = ScheduledShift::with(['region', 'activeAssignments.courier'])
+            ->whereDate('shift_date', $date)
+            ->where('status', '!=', ScheduledShift::STATUS_COMPLETED)
+            ->orderBy('region_id')
+            ->orderBy('start_time');
+
+        if ($regionId) {
+            $query->where('region_id', $regionId);
+        }
+
+        $shifts = $query->get();
+
+        return view('panel.schedule.index', compact('regions', 'shifts', 'date', 'dateObj', 'regionId'));
     }
 
     /**
-     * Vardiyaları liste görünümü
+     * Tek vardiya detayı (basit HTML – kurye ata/çıkar)
      */
+    public function showPage(ScheduledShift $scheduledShift)
+    {
+        $scheduledShift->load(['region', 'assignments.courier', 'activeAssignments.courier']);
+        $regions = Region::active()->orderBy('name')->get();
+        $courierIds = auth()->user()->getAccessibleCouriers()->pluck('id');
+        $couriers = User::whereIn('id', $courierIds)
+            ->whereHas('role', fn($q) => $q->where('name', Role::COURIER))
+            ->orderBy('name')
+            ->get();
+        return view('panel.schedule.show', compact('scheduledShift', 'regions', 'couriers'));
+    }
+
     /**
      * Günlük Operasyon Özeti - Tüm vardiyalar tek bakışta
      */
@@ -289,7 +314,7 @@ class ScheduledShiftController extends Controller
                     'message' => 'Vardiya kaydedilirken hata oluştu: ' . $e->getMessage(),
                 ], 500);
             }
-            return redirect()->route('panel.schedule.calendar')->with('error', 'Vardiya kaydedilemedi.');
+            return redirect()->route('panel.schedule.index')->with('error', 'Vardiya kaydedilemedi.');
         }
 
         if ($request->wantsJson()) {
@@ -300,8 +325,7 @@ class ScheduledShiftController extends Controller
             ]);
         }
 
-        return redirect()->route('panel.schedule.calendar')
-            ->with('success', 'Vardiya başarıyla oluşturuldu.');
+        return redirect()->route('panel.schedule.index', ['date' => $scheduledShift->shift_date->format('Y-m-d')])->with('success', 'Vardiya başarıyla oluşturuldu.');
     }
 
     /**
@@ -331,8 +355,7 @@ class ScheduledShiftController extends Controller
             ]);
         }
 
-        return redirect()->route('panel.schedule.calendar')
-            ->with('success', 'Vardiya başarıyla güncellendi.');
+        return redirect()->route('panel.schedule.index', ['date' => $scheduledShift->shift_date->format('Y-m-d')])->with('success', 'Vardiya başarıyla güncellendi.');
     }
 
     /**
@@ -340,10 +363,10 @@ class ScheduledShiftController extends Controller
      */
     public function destroy(ScheduledShift $scheduledShift)
     {
+        $shiftDate = $scheduledShift->shift_date->format('Y-m-d');
         // Atamaları da sil
         $scheduledShift->assignments()->delete();
         $scheduledShift->delete();
-
         if (request()->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -351,8 +374,7 @@ class ScheduledShiftController extends Controller
             ]);
         }
 
-        return redirect()->route('panel.schedule.calendar')
-            ->with('success', 'Vardiya başarıyla silindi.');
+        return redirect()->route('panel.schedule.index', ['date' => $shiftDate])->with('success', 'Vardiya başarıyla silindi.');
     }
 
     /**
@@ -498,11 +520,11 @@ class ScheduledShiftController extends Controller
             $regionName = $overlappingShift->region->name ?? 'Bilinmeyen Bölge';
             $startTime = Carbon::parse($overlappingShift->start_time)->format('H:i');
             $endTime = Carbon::parse($overlappingShift->end_time)->format('H:i');
-            
-            return response()->json([
-                'success' => false,
-                'message' => "Bu kurye aynı saatlerde başka bir vardiyaya atanmış: {$regionName} ({$startTime} - {$endTime})",
-            ], 422);
+            $msg = "Bu kurye aynı saatlerde başka bir vardiyaya atanmış: {$regionName} ({$startTime} - {$endTime})";
+            if (!$request->wantsJson()) {
+                return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with('error', $msg);
+            }
+            return response()->json(['success' => false, 'message' => $msg], 422);
         }
 
         // Mevcut atama var mı kontrol et (iptal edilmiş dahil)
@@ -515,10 +537,10 @@ class ScheduledShiftController extends Controller
             if ($existing->isCancelled()) {
                 // Kapasite kontrolü
                 if ($scheduledShift->isFullyStaffed()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Vardiya kapasitesi dolu.',
-                    ], 422);
+                    if (!$request->wantsJson()) {
+                        return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with('error', 'Vardiya kapasitesi dolu.');
+                    }
+                    return response()->json(['success' => false, 'message' => 'Vardiya kapasitesi dolu.'], 422);
                 }
 
                 $existing->update([
@@ -532,6 +554,9 @@ class ScheduledShiftController extends Controller
 
                 $existing->load('courier');
 
+                if (!$request->wantsJson()) {
+                    return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with('success', 'Kurye başarıyla atandı.');
+                }
                 return response()->json([
                     'success' => true,
                     'message' => 'Kurye başarıyla atandı.',
@@ -549,6 +574,9 @@ class ScheduledShiftController extends Controller
             }
 
             // Aktif atama varsa hata döndür
+            if (!$request->wantsJson()) {
+                return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with('error', 'Bu kurye zaten bu vardiyaya atanmış.');
+            }
             return response()->json([
                 'success' => false,
                 'message' => 'Bu kurye zaten bu vardiyaya atanmış.',
@@ -557,6 +585,9 @@ class ScheduledShiftController extends Controller
 
         // Kapasite kontrolü
         if ($scheduledShift->isFullyStaffed()) {
+            if (!$request->wantsJson()) {
+                return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with('error', 'Vardiya kapasitesi dolu.');
+            }
             return response()->json([
                 'success' => false,
                 'message' => 'Vardiya kapasitesi dolu.',
@@ -573,6 +604,9 @@ class ScheduledShiftController extends Controller
 
         $assignment->load('courier');
 
+        if (!$request->wantsJson()) {
+            return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with('success', 'Kurye başarıyla atandı.');
+        }
         return response()->json([
             'success' => true,
             'message' => 'Kurye başarıyla atandı.',
@@ -600,6 +634,9 @@ class ScheduledShiftController extends Controller
 
         $assignment->cancel($request->get('reason'));
 
+        if (!$request->wantsJson()) {
+            return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with('success', 'Kurye ataması kaldırıldı.');
+        }
         return response()->json([
             'success' => true,
             'message' => 'Kurye ataması kaldırıldı.',
@@ -622,6 +659,9 @@ class ScheduledShiftController extends Controller
             ->first();
 
         if (!$assignment) {
+            if (!$request->wantsJson()) {
+                return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with('error', 'Bu kurye vardiyaya atanmamış.');
+            }
             return response()->json([
                 'success' => false,
                 'message' => 'Bu kurye vardiyaya atanmamış.',
@@ -630,6 +670,9 @@ class ScheduledShiftController extends Controller
 
         $assignment->cancel($request->get('reason'));
 
+        if (!$request->wantsJson()) {
+            return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with('success', 'Kurye ataması kaldırıldı.');
+        }
         return response()->json([
             'success' => true,
             'message' => 'Kurye ataması kaldırıldı.',
@@ -1110,7 +1153,7 @@ class ScheduledShiftController extends Controller
             }
         }
 
-        return redirect()->route('panel.schedule.calendar')->with(
+        return redirect()->route('panel.schedule.index')->with(
             $createdAssignments > 0 || $createdShifts > 0 ? 'success' : 'warning',
             $message
         );

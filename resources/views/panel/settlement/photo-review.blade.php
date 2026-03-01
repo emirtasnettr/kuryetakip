@@ -3,14 +3,26 @@
 @section('title', 'Vardiya Uyumluluk İncelemesi')
 
 @section('content')
-<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-800">Vardiya Uyumluluk İncelemesi</h1>
-        <p class="text-gray-500 mt-1">Sadece vardiya <strong>başlangıç</strong> fotoğrafları değerlendirilir; bitiş fotoğrafı dikkate alınmaz. Prim verin, prim vermeyin veya tekrar fotoğraf isteyin (vardiya tamamlanmamış olsa da seçenekler geçerlidir).</p>
+<div class="mb-6 flex flex-col gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Vardiya Uyumluluk İncelemesi</h1>
+            <p class="text-gray-500 mt-1">Sadece vardiya <strong>başlangıç</strong> fotoğrafları değerlendirilir; bitiş fotoğrafı dikkate alınmaz. Prim verin, prim vermeyin veya tekrar fotoğraf isteyin (vardiya tamamlanmamış olsa da seçenekler geçerlidir).</p>
+        </div>
+        <a href="{{ route('panel.settlement.settings') }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium shrink-0">
+            Hakediş ayarları (prim tutarı bölgeye göre)
+        </a>
     </div>
-    <a href="{{ route('panel.settlement.settings') }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
-        Hakediş ayarları (prim tutarı bölgeye göre)
-    </a>
+    <form method="GET" action="{{ route('panel.settlement.photo-review') }}" class="flex flex-wrap items-center gap-2">
+        <label for="name-search" class="sr-only">Kurye adıyla ara</label>
+        <input type="text" id="name-search" name="name" value="{{ old('name', $nameSearch ?? '') }}"
+               placeholder="Kurye adıyla ara…"
+               class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full sm:w-64 focus:ring-indigo-500 focus:border-indigo-500">
+        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">Ara</button>
+        @if(!empty($nameSearch ?? ''))
+            <a href="{{ route('panel.settlement.photo-review') }}" class="px-3 py-2 text-gray-600 hover:text-gray-800 text-sm border border-gray-300 rounded-lg">Temizle</a>
+        @endif
+    </form>
 </div>
 
 @if(session('success'))

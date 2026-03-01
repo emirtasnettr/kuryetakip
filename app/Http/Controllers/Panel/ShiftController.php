@@ -40,9 +40,14 @@ class ShiftController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Kurye filtresi
+        // Kurye filtresi (ID veya isim ile)
         if ($request->filled('courier_id')) {
             $query->where('user_id', $request->courier_id);
+        }
+        if ($request->filled('name')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->input('name') . '%');
+            });
         }
 
         // İlçe filtresi

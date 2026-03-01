@@ -20,11 +20,16 @@ class SettlementController extends Controller
     public function calculation(Request $request)
     {
         $user = $request->user();
+        $nameSearch = $request->get('name', '');
 
         $startDate = $request->get('start_date', Carbon::today()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->get('end_date', Carbon::today()->format('Y-m-d'));
 
-        $couriers = $user->getAccessibleCouriers()->get();
+        $couriersQuery = $user->getAccessibleCouriers();
+        if ($nameSearch !== '') {
+            $couriersQuery = $couriersQuery->where('name', 'like', '%' . $nameSearch . '%');
+        }
+        $couriers = $couriersQuery->get();
 
         $rows = [];
         foreach ($couriers as $courier) {
@@ -117,7 +122,7 @@ class SettlementController extends Controller
         ];
 
         $settings = SettlementSetting::get(); // view'da KDV oranı vb. için varsayılan
-        return view('panel.settlement.calculation', compact('settings', 'startDate', 'endDate', 'rows', 'totals', 'couriers'));
+        return view('panel.settlement.calculation', compact('settings', 'startDate', 'endDate', 'rows', 'totals', 'couriers', 'nameSearch'));
     }
 
     /**
@@ -128,7 +133,13 @@ class SettlementController extends Controller
         $user = $request->user();
         $startDate = $request->get('start_date', Carbon::today()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->get('end_date', Carbon::today()->format('Y-m-d'));
-        $couriers = $user->getAccessibleCouriers()->get();
+        $nameSearch = $request->get('name', '');
+
+        $couriersQuery = $user->getAccessibleCouriers();
+        if ($nameSearch !== '') {
+            $couriersQuery = $couriersQuery->where('name', 'like', '%' . $nameSearch . '%');
+        }
+        $couriers = $couriersQuery->get();
 
         $rows = [];
         foreach ($couriers as $courier) {
@@ -235,12 +246,17 @@ class SettlementController extends Controller
     {
         $user = $request->user();
         $courierIds = $user->getAccessibleCouriers()->pluck('id');
+        $nameSearch = $request->get('name', '');
         $endDate = Carbon::parse($request->get('end_date', Carbon::today()->format('Y-m-d')))->endOfDay();
         $startDate = Carbon::parse($request->get('start_date', Carbon::today()->subDays(6)->format('Y-m-d')))->startOfDay();
         if ($startDate->gt($endDate)) {
             $startDate = $endDate->copy()->startOfDay();
         }
-        $couriers = \App\Models\User::whereIn('id', $courierIds)->orderBy('name')->get();
+        $couriersQuery = \App\Models\User::whereIn('id', $courierIds);
+        if ($nameSearch !== '') {
+            $couriersQuery = $couriersQuery->where('name', 'like', '%' . $nameSearch . '%');
+        }
+        $couriers = $couriersQuery->orderBy('name')->get();
         $rows = [];
         foreach ($couriers as $courier) {
             $baseQuery = Shift::where('user_id', $courier->id)->where('status', Shift::STATUS_COMPLETED)->whereBetween('started_at', [$startDate, $endDate]);
@@ -319,10 +335,14 @@ class SettlementController extends Controller
             'bonus_date' => $validated['bonus_date'],
         ]);
 
-        return redirect()->route('panel.settlement.calculation', [
+        $params = [
             'start_date' => $request->get('start_date'),
             'end_date' => $request->get('end_date'),
-        ])->with('success', 'Ekstra prim eklendi.');
+        ];
+        if ($request->filled('name')) {
+            $params['name'] = $request->get('name');
+        }
+        return redirect()->route('panel.settlement.calculation', $params)->with('success', 'Ekstra prim eklendi.');
     }
 
     /**
@@ -514,9 +534,9 @@ class SettlementController extends Controller
     {
         $user = $request->user();
         $courierIds = $user->getAccessibleCouriers()->pluck('id');
+        $nameSearch = $request->get('name', '');
 
-        // Sadece inceleme bekleyenler (pending). Tekrar fotoğraf istenenler listede görünmez; kurye tekrar yükleyince pending olur ve o zaman düşer.
-        $shifts = Shift::query()
+        $query = Shift::query()
             ->whereIn('user_id', $courierIds)
             ->where('photo_compliance_status', Shift::PHOTO_COMPLIANCE_PENDING)
             ->where(function ($q) {
@@ -525,12 +545,21 @@ class SettlementController extends Controller
                         $q2->where('status', Shift::STATUS_ACTIVE)
                             ->whereHas('photos', fn ($p) => $p->where('type', 'start'));
                     });
-            })
+            });
+
+        if ($nameSearch !== '') {
+            $query->whereHas('user', function ($q) use ($nameSearch) {
+                $q->where('name', 'like', '%' . $nameSearch . '%');
+            });
+        }
+
+        $shifts = $query
             ->with(['user', 'region', 'photos' => fn ($q) => $q->orderBy('type')->orderBy('is_retry')])
             ->orderBy('started_at', 'desc')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('panel.settlement.photo-review', compact('shifts'));
+        return view('panel.settlement.photo-review', compact('shifts', 'nameSearch'));
     }
 
     /**
@@ -570,6 +599,7 @@ class SettlementController extends Controller
     {
         $user = $request->user();
         $courierIds = $user->getAccessibleCouriers()->pluck('id');
+        $nameSearch = $request->get('name', '');
 
         $endDate = Carbon::parse($request->get('end_date', Carbon::today()->format('Y-m-d')))->endOfDay();
         $startDate = Carbon::parse($request->get('start_date', Carbon::today()->subDays(6)->format('Y-m-d')))->startOfDay();
@@ -577,9 +607,11 @@ class SettlementController extends Controller
             $startDate = $endDate->copy()->startOfDay();
         }
 
-        $couriers = \App\Models\User::whereIn('id', $courierIds)
-            ->orderBy('name')
-            ->get();
+        $couriersQuery = \App\Models\User::whereIn('id', $courierIds);
+        if ($nameSearch !== '') {
+            $couriersQuery = $couriersQuery->where('name', 'like', '%' . $nameSearch . '%');
+        }
+        $couriers = $couriersQuery->orderBy('name')->get();
 
         $rows = [];
         foreach ($couriers as $courier) {
@@ -604,6 +636,7 @@ class SettlementController extends Controller
             'rows' => $rows,
             'startDate' => $startDate->format('Y-m-d'),
             'endDate' => $endDate->format('Y-m-d'),
+            'nameSearch' => $nameSearch,
         ]);
     }
 }

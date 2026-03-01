@@ -28,9 +28,9 @@
         </div>
         
         <div class="flex items-center gap-3">
-            <a href="{{ route('panel.schedule.calendar') }}" 
+            <a href="{{ route('panel.schedule.index') }}" 
                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
-                Takvime Dön
+                Planlamaya Dön
             </a>
         </div>
     </div>
@@ -58,7 +58,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <p class="text-gray-500">Bu gün için planlanmış vardiya yok.</p>
-            <a href="{{ route('panel.schedule.calendar') }}" class="inline-block mt-4 px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">
+            <a href="{{ route('panel.schedule.index', ['date' => $date->format('Y-m-d')]) }}" class="inline-block mt-4 px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800">
                 Vardiya Oluştur
             </a>
         </div>
