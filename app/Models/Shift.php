@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 
@@ -108,6 +109,14 @@ class Shift extends Model
     public function logs(): HasMany
     {
         return $this->hasMany(ShiftLog::class)->orderBy('logged_at', 'asc');
+    }
+
+    /**
+     * Bu vardiyayı oluşturan planlı atama (varsa; planlı vardiyadan başlatıldıysa)
+     */
+    public function sourceAssignment(): HasOne
+    {
+        return $this->hasOne(ShiftAssignment::class, 'actual_shift_id', 'id');
     }
 
     /**
@@ -257,6 +266,22 @@ class Shift extends Model
         }
 
         return "{$mins} dakika";
+    }
+
+    /**
+     * Gecikme süresi (dakika). Planlı vardiyadan başlatıldıysa ve geç başladıysa pozitif.
+     */
+    public function getDelayMinutesAttribute(): int
+    {
+        return $this->sourceAssignment?->delay_minutes ?? 0;
+    }
+
+    /**
+     * Planlanan başlangıç (planlı atamadan; yoksa null)
+     */
+    public function getPlannedStartAtAttribute(): ?Carbon
+    {
+        return $this->sourceAssignment?->planned_start_at;
     }
 
     /**

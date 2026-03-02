@@ -353,6 +353,35 @@ class ShiftAssignment extends Model
     }
 
     /**
+     * Planlanan başlangıç tarih-saati (scheduled_shift tarih + start_time)
+     */
+    public function getPlannedStartAtAttribute(): ?\Carbon\Carbon
+    {
+        if (!$this->scheduledShift) {
+            return null;
+        }
+        $date = $this->scheduledShift->shift_date->format('Y-m-d');
+        $time = \Carbon\Carbon::parse($this->scheduledShift->start_time)->format('H:i:s');
+        return \Carbon\Carbon::parse($date . ' ' . $time, config('app.timezone'));
+    }
+
+    /**
+     * Gecikme süresi (dakika). Planlanan başlangıçtan sonra başladıysa pozitif, yoksa 0.
+     */
+    public function getDelayMinutesAttribute(): int
+    {
+        if (!$this->started_at) {
+            return 0;
+        }
+        $planned = $this->planned_start_at;
+        if (!$planned) {
+            return 0;
+        }
+        $actual = \Carbon\Carbon::parse($this->started_at, config('app.timezone'));
+        return $actual->gt($planned) ? (int) $planned->diffInMinutes($actual) : 0;
+    }
+
+    /**
      * Vardiyayı erken bitir (kurye değişikliği için)
      */
     public function endEarly(string $endTime, ?string $reason = null): bool

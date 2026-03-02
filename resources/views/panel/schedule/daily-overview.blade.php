@@ -603,24 +603,33 @@ async function removeCourier(shiftId, courierId) {
         const response = await fetch(`/panel/schedule/shifts/${shiftId}/unassign`, {
             method: 'POST',
             headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ courier_id: courierId })
+            body: JSON.stringify({ courier_id: Number(courierId) }),
+            credentials: 'same-origin'
         });
         
-        const data = await response.json();
+        const contentType = response.headers.get('content-type');
+        const isJson = contentType && contentType.includes('application/json');
+        const data = isJson ? await response.json() : null;
         
-        if (data.success) {
+        if (response.ok && data && data.success) {
             loadShiftData(shiftId);
             updatePageStats();
+        } else if (response.status === 419) {
+            alert('Oturum süresi doldu. Sayfayı yenileyip tekrar deneyin.');
+        } else if (data && data.message) {
+            alert(data.message);
+        } else if (data && data.errors && data.errors.courier_id) {
+            alert(data.errors.courier_id[0] || 'Geçersiz istek.');
         } else {
-            alert(data.message || 'Bir hata oluştu');
+            alert(data?.message || 'Kurye kaldırılırken bir hata oluştu. Sayfayı yenileyip tekrar deneyin.');
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Bir hata oluştu');
+        alert('Kurye kaldırılırken bir hata oluştu. Sayfayı yenileyip tekrar deneyin.');
     }
 }
 

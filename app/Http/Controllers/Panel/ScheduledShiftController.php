@@ -688,37 +688,49 @@ class ScheduledShiftController extends Controller
     }
 
     /**
-     * Kurye atamasını courier_id ile kaldır
+     * Kurye atamasını courier_id ile kaldır (JSON veya form: courier_id)
      */
     public function unassignCourierById(Request $request, ScheduledShift $scheduledShift)
     {
+        $courierId = $request->input('courier_id') ?? $request->query('courier_id');
+        if ($courierId === null && $request->isJson()) {
+            $courierId = $request->json('courier_id');
+        }
+        $request->merge(['courier_id' => $courierId]);
+
         $validated = $request->validate([
-            'courier_id' => 'required|exists:users,id',
+            'courier_id' => 'required|integer|exists:users,id',
+        ], [
+            'courier_id.required' => 'Kurye seçilmedi.',
+            'courier_id.exists' => 'Geçersiz kurye.',
         ]);
 
         $assignment = ShiftAssignment::where('scheduled_shift_id', $scheduledShift->id)
             ->where('courier_id', $validated['courier_id'])
-            ->whereNotIn('status', ['cancelled'])
+            ->whereNotIn('status', [ShiftAssignment::STATUS_CANCELLED])
             ->first();
 
         if (!$assignment) {
             if (!$request->wantsJson()) {
-                return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with('error', 'Bu kurye vardiyaya atanmamış.');
+                return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with('error', 'Bu kurye vardiyaya atanmamış veya zaten çıkarılmış.');
             }
             return response()->json([
                 'success' => false,
-                'message' => 'Bu kurye vardiyaya atanmamış.',
+                'message' => 'Bu kurye vardiyaya atanmamış veya zaten çıkarılmış.',
             ], 404);
         }
 
-        $assignment->cancel($request->get('reason'));
+        $cancelled = $assignment->cancel($request->input('reason'));
 
         if (!$request->wantsJson()) {
-            return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with('success', 'Kurye ataması kaldırıldı.');
+            return redirect()->route('panel.schedule.shifts.page', $scheduledShift)->with(
+                $cancelled ? 'success' : 'error',
+                $cancelled ? 'Kurye ataması kaldırıldı.' : 'Bu atama zaten tamamlanmış veya iptal edilmiş.'
+            );
         }
         return response()->json([
             'success' => true,
-            'message' => 'Kurye ataması kaldırıldı.',
+            'message' => $cancelled ? 'Kurye ataması kaldırıldı.' : 'Atama zaten sonlandırılmış.',
         ]);
     }
 

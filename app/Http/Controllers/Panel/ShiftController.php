@@ -288,18 +288,31 @@ class ShiftController extends Controller
         $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->get('end_date', now()->format('Y-m-d'));
 
-        // Kurye bazlı rapor
+        // Vardiya listesi (gecikme bilgisi ile)
+        $shiftsList = Shift::whereIn('user_id', $accessibleCouriers->pluck('id'))
+            ->with(['user', 'sourceAssignment.scheduledShift'])
+            ->completed()
+            ->betweenDates($startDate, $endDate)
+            ->orderBy('started_at', 'desc')
+            ->get();
+
+        // Kurye bazlı rapor (gecikme özeti dahil)
         $courierReport = $accessibleCouriers->get()
-            ->map(function ($courier) use ($startDate, $endDate) {
-                $shifts = $courier->shifts()
-                    ->completed()
-                    ->betweenDates($startDate, $endDate);
+            ->map(function ($courier) use ($startDate, $endDate, $shiftsList) {
+                $courierShifts = $shiftsList->where('user_id', $courier->id);
+                $shiftCount = $courierShifts->count();
+                $totalPackages = $courierShifts->sum('package_count');
+                $totalMinutes = $courierShifts->sum('total_minutes');
+                $totalDelayMinutes = $courierShifts->sum('delay_minutes');
+                $lateShiftCount = $courierShifts->filter(fn ($s) => $s->delay_minutes > 0)->count();
 
                 return [
                     'courier' => $courier,
-                    'shift_count' => $shifts->count(),
-                    'total_packages' => $shifts->sum('package_count'),
-                    'total_minutes' => $shifts->sum('total_minutes'),
+                    'shift_count' => $shiftCount,
+                    'total_packages' => $totalPackages,
+                    'total_minutes' => $totalMinutes,
+                    'total_delay_minutes' => $totalDelayMinutes,
+                    'late_shift_count' => $lateShiftCount,
                 ];
             })
             ->sortByDesc('total_packages');
@@ -323,6 +336,7 @@ class ShiftController extends Controller
         return view('panel.shifts.reports', compact(
             'courierReport',
             'overallStats',
+            'shiftsList',
             'startDate',
             'endDate'
         ));
@@ -336,7 +350,7 @@ class ShiftController extends Controller
         $user = $request->user();
         $accessibleCouriers = $user->getAccessibleCouriers();
         $query = Shift::whereIn('user_id', $accessibleCouriers->pluck('id'))
-            ->with(['user', 'district', 'region']);
+            ->with(['user', 'district', 'region', 'sourceAssignment.scheduledShift']);
 
         if ($request->filled('start_date')) {
             $query->whereDate('started_at', '>=', $request->start_date);
@@ -367,7 +381,7 @@ class ShiftController extends Controller
             $stream = fopen('php://output', 'w');
             fprintf($stream, chr(0xEF) . chr(0xBB) . chr(0xBF));
             fputcsv($stream, [
-                'Kurye', 'Sicil No', 'E-posta', 'İlçe', 'Bölge', 'Başlangıç', 'Bitiş', 'Süre (dk)', 'Paket',
+                'Kurye', 'Sicil No', 'E-posta', 'İlçe', 'Bölge', 'Planlanan Başlangıç', 'Gerçek Başlangıç', 'Bitiş', 'Gecikme (dk)', 'Süre (dk)', 'Paket',
                 'Foto Uyumluluk', 'Notlar', 'Durum', 'Sistem Kapatma',
             ], ';');
             foreach ($shifts as $s) {
@@ -380,8 +394,10 @@ class ShiftController extends Controller
                     $s->user?->email ?? '',
                     $s->district?->name ?? '',
                     $s->region?->name ?? '',
+                    $s->planned_start_at ? $s->planned_start_at->format('d.m.Y H:i') : '',
                     $s->started_at?->format('d.m.Y H:i') ?? '',
                     $s->ended_at ? $s->ended_at->format('d.m.Y H:i') : '',
+                    $s->delay_minutes,
                     $s->total_minutes ?? '',
                     $s->package_count ?? '',
                     $photoLabel,

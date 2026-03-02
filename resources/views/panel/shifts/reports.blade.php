@@ -90,6 +90,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vardiya Sayısı</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Toplam Paket</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Çalışma Süresi</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gecikme</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ort. Paket/Saat</th>
                 </tr>
             </thead>
@@ -115,6 +116,14 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ round($data['total_minutes'] / 60, 1) }} saat
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            @if($data['total_delay_minutes'] > 0)
+                                <span class="text-amber-600 font-medium" title="{{ $data['late_shift_count'] }} vardiyada gecikme">{{ $data['total_delay_minutes'] }} dk</span>
+                                <span class="text-gray-400 text-xs">({{ $data['late_shift_count'] }} vardiya)</span>
+                            @else
+                                <span class="text-gray-500">—</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             @if($data['total_minutes'] > 0)
                                 {{ round($data['total_packages'] / ($data['total_minutes'] / 60), 1) }}
@@ -125,7 +134,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                             Bu tarih aralığında veri bulunamadı.
                         </td>
                     </tr>
@@ -150,7 +159,7 @@
                 </div>
                 
                 <!-- Stats Grid -->
-                <div class="grid grid-cols-3 gap-2 bg-gray-50 rounded-lg p-3 text-center">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-50 rounded-lg p-3 text-center">
                     <div>
                         <p class="text-xs text-gray-500">Paket</p>
                         <p class="text-lg font-bold text-indigo-600">{{ number_format($data['total_packages']) }}</p>
@@ -158,6 +167,12 @@
                     <div>
                         <p class="text-xs text-gray-500">Saat</p>
                         <p class="text-lg font-bold text-gray-800">{{ round($data['total_minutes'] / 60, 1) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Gecikme</p>
+                        <p class="text-lg font-bold {{ $data['total_delay_minutes'] > 0 ? 'text-amber-600' : 'text-gray-500' }}">
+                            {{ $data['total_delay_minutes'] > 0 ? $data['total_delay_minutes'] . ' dk' : '—' }}
+                        </p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500">Paket/Saat</p>
@@ -181,5 +196,55 @@
         @endforelse
     </div>
 </div>
+
+<!-- Vardiya Listesi -->
+@if(isset($shiftsList) && $shiftsList->isNotEmpty())
+<div class="bg-white rounded-xl shadow-sm overflow-hidden mt-6">
+    <div class="p-4 md:p-6 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-800">Vardiya Listesi</h2>
+        <p class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($startDate)->format('d.m.Y') }} - {{ \Carbon\Carbon::parse($endDate)->format('d.m.Y') }} · Planlanan başlangıç, gerçek başlangıç ve gecikme (dk)</p>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kurye</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Planlanan Başlangıç</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gerçek Başlangıç</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gecikme (dk)</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bitiş</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Süre (dk)</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paket</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @foreach($shiftsList as $s)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $s->user?->name ?? '—' }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                            {{ $s->planned_start_at ? $s->planned_start_at->format('d.m.Y H:i') : '—' }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                            {{ $s->started_at ? $s->started_at->format('d.m.Y H:i') : '—' }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm">
+                            @if($s->delay_minutes > 0)
+                                <span class="font-medium text-amber-600">{{ $s->delay_minutes }} dk</span>
+                            @else
+                                <span class="text-gray-500">0</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                            {{ $s->ended_at ? $s->ended_at->format('d.m.Y H:i') : '—' }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $s->total_minutes ?? '—' }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $s->package_count ?? '—' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
 
 @endsection
