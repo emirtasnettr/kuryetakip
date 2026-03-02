@@ -72,45 +72,26 @@
             @enderror
         </div>
         
-        <!-- Photo Capture: Sadece anlık kamera çekimi (galeri yok) -->
+        <!-- Photo: Telefonun kamera uygulaması ile çekim -->
         <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
             <h3 class="font-semibold text-gray-800 mb-3">
                 Başlangıç Fotoğrafı
                 <span class="text-red-500">*</span>
             </h3>
-            <p class="text-sm text-gray-500 mb-3">Fotoğraf anlık olarak kameradan çekilmelidir; galeriden seçim yapılamaz.</p>
+            <p class="text-sm text-gray-500 mb-3">Fotoğraf çek butonuna basınca telefonun kamera uygulaması açılır; oradan fotoğraf çekin.</p>
             
-            <input type="file" name="photo" accept="image/*" class="hidden" id="photoInput" required>
+            <input type="file" name="photo" accept="image/*" capture="environment" class="hidden" id="photoInput" required>
             
-            <!-- Kamera aç butonu -->
             <div id="photoStartArea" class="mb-3">
                 <button type="button" id="openCameraBtn" class="flex items-center justify-center w-full py-4 px-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-black hover:text-black transition-colors bg-gray-50">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span>Kamerayı Aç ve Fotoğraf Çek</span>
+                    <span>Fotoğraf Çek</span>
                 </button>
             </div>
             
-            <!-- Canlı kamera görüntüsü + çek butonu -->
-            <div id="cameraArea" class="hidden mb-3">
-                <div class="relative rounded-lg overflow-hidden bg-black">
-                    <video id="cameraVideo" autoplay playsinline muted class="w-full max-h-[280px] object-cover"></video>
-                    <button type="button" id="switchCameraBtn" class="absolute top-2 right-2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70" title="Ön / Arka kamera">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    </button>
-                    <button type="button" id="captureBtn" class="absolute bottom-3 left-1/2 -translate-x-1/2 px-6 py-3 bg-white text-black font-semibold rounded-full shadow-lg hover:bg-gray-100">
-                        Fotoğrafı Çek
-                    </button>
-                </div>
-                <div class="mt-2 flex items-center justify-between">
-                    <button type="button" id="switchCameraBtnOuter" class="text-sm text-gray-600 hover:text-gray-900 font-medium">Ön / Arka kamera değiştir</button>
-                    <button type="button" id="closeCameraBtn" class="text-sm text-gray-500 hover:text-gray-700">İptal</button>
-                </div>
-            </div>
-            
-            <!-- Çekilen fotoğraf önizleme -->
             <div id="photoPreview" class="hidden mb-3">
                 <img id="previewImage" src="" alt="Önizleme" class="w-full h-48 object-cover rounded-lg">
                 <button type="button" id="retakePhotoBtn" class="mt-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium">Yeniden Çek</button>
@@ -120,22 +101,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
-                <span>Anlık fotoğraf çekmek zorunludur</span>
-            </div>
-            
-            <div id="cameraPermissionError" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <div class="flex items-start">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <div class="flex-1">
-                        <p class="text-sm text-red-700 font-medium">Kamera erişim izni verilmedi</p>
-                        <p class="text-xs text-red-600 mt-1">Anlık fotoğraf çekebilmek için kamera iznini verin.</p>
-                        <button type="button" id="requestCameraPermission" class="mt-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700">
-                            İzin Ver
-                        </button>
-                    </div>
-                </div>
+                <span>Başlangıç fotoğrafı zorunludur</span>
             </div>
             
             @error('photo')
@@ -164,8 +130,6 @@
 <script>
     let locationReady = false;
     let photoReady = false;
-    let cameraStream = null;
-    let currentFacingMode = 'environment';
     
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -197,86 +161,19 @@
         document.getElementById('locationErrorText').textContent = 'Tarayıcınız konum özelliğini desteklemiyor.';
     }
     
-    function showCameraPermissionError() {
-        document.getElementById('cameraPermissionError').classList.remove('hidden');
-        document.getElementById('photoRequired').classList.add('hidden');
-    }
-    function hideCameraPermissionError() {
-        document.getElementById('cameraPermissionError').classList.add('hidden');
-    }
+    document.getElementById('openCameraBtn').addEventListener('click', function() {
+        document.getElementById('photoInput').click();
+    });
     
-    function setPhotoFile(blob) {
-        const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        document.getElementById('photoInput').files = dt.files;
-        document.getElementById('previewImage').src = URL.createObjectURL(blob);
+    document.getElementById('photoInput').addEventListener('change', function() {
+        const file = this.files && this.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        document.getElementById('previewImage').src = URL.createObjectURL(file);
         document.getElementById('photoPreview').classList.remove('hidden');
         document.getElementById('photoStartArea').classList.add('hidden');
         document.getElementById('photoRequired').classList.add('hidden');
         photoReady = true;
         updateSubmitButton();
-    }
-    
-    function stopCamera() {
-        if (cameraStream) {
-            cameraStream.getTracks().forEach(t => t.stop());
-            cameraStream = null;
-        }
-        document.getElementById('cameraArea').classList.add('hidden');
-        document.getElementById('cameraVideo').srcObject = null;
-    }
-    
-    async function startCamera(facing) {
-        if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
-        currentFacingMode = facing || currentFacingMode;
-        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode }, audio: false });
-        document.getElementById('cameraVideo').srcObject = cameraStream;
-    }
-    
-    function switchCamera() {
-        currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-        startCamera(currentFacingMode).catch(function(e) {
-            alert('Kamera değiştirilemedi: ' + (e.message || ''));
-        });
-    }
-    
-    document.getElementById('openCameraBtn').addEventListener('click', async function() {
-        hideCameraPermissionError();
-        currentFacingMode = 'environment';
-        try {
-            await startCamera('environment');
-            document.getElementById('photoStartArea').classList.add('hidden');
-            document.getElementById('cameraArea').classList.remove('hidden');
-        } catch (err) {
-            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                showCameraPermissionError();
-            } else {
-                alert('Kameraya erişilemiyor: ' + (err.message || 'Bilinmeyen hata'));
-            }
-        }
-    });
-    document.getElementById('switchCameraBtn').addEventListener('click', switchCamera);
-    document.getElementById('switchCameraBtnOuter').addEventListener('click', switchCamera);
-    
-    document.getElementById('closeCameraBtn').addEventListener('click', function() {
-        stopCamera();
-        document.getElementById('photoStartArea').classList.remove('hidden');
-    });
-    
-    document.getElementById('captureBtn').addEventListener('click', function() {
-        const video = document.getElementById('cameraVideo');
-        if (!video.srcObject || !video.videoWidth) return;
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        canvas.toBlob(function(blob) {
-            if (blob) {
-                stopCamera();
-                setPhotoFile(blob);
-            }
-        }, 'image/jpeg', 0.92);
     });
     
     document.getElementById('retakePhotoBtn').addEventListener('click', function() {
@@ -288,24 +185,17 @@
         document.getElementById('photoRequired').classList.remove('hidden');
     });
     
-    document.getElementById('requestCameraPermission').addEventListener('click', function() {
-        document.getElementById('openCameraBtn').click();
-    });
-    
     function updateSubmitButton() {
         document.getElementById('submitBtn').disabled = !(locationReady && photoReady);
     }
     
     document.getElementById('startForm').addEventListener('submit', function(e) {
         if (!locationReady) { e.preventDefault(); alert('Konum bilgisi alınamadı.'); return; }
-        if (!photoReady) { e.preventDefault(); alert('Lütfen başlangıç fotoğrafını kameradan çekin.'); return; }
-        stopCamera();
+        if (!photoReady) { e.preventDefault(); alert('Lütfen başlangıç fotoğrafı çekin.'); return; }
         document.getElementById('submitText').classList.add('hidden');
         document.getElementById('submitLoading').classList.remove('hidden');
         document.getElementById('submitBtn').disabled = true;
     });
-    
-    window.addEventListener('pagehide', stopCamera);
 </script>
 @endpush
 @endsection

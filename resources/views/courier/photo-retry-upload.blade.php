@@ -12,29 +12,16 @@
 
     <form action="{{ route('courier.photo-retry.upload.submit', $shift) }}" method="POST" enctype="multipart/form-data" id="photoRetryForm" class="bg-white rounded-xl shadow-sm p-6 space-y-6">
         @csrf
-        <p class="text-sm text-gray-600">Vardiya başlangıç fotoğrafını anlık olarak kameradan çekin. Galeriden seçim yapılamaz. Mevcut fotoğraflar silinmeyecek; inceleme sonrası tekrar Vardiya Uyumluluk İncelemesi'ne düşecektir.</p>
+        <p class="text-sm text-gray-600">Fotoğraf çek butonuna basınca telefonun kamera uygulaması açılır; oradan fotoğraf çekin. Mevcut fotoğraflar silinmeyecek; inceleme sonrası tekrar Vardiya Uyumluluk İncelemesi'ne düşecektir.</p>
 
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Vardiya başlangıç fotoğrafı (tekrar) *</label>
-            <input type="file" name="photo_start" accept="image/*" class="hidden" id="photoRetryInput" required>
+            <input type="file" name="photo_start" accept="image/*" capture="environment" class="hidden" id="photoRetryInput" required>
             <div id="photoRetryStartArea" class="mb-3">
                 <button type="button" id="photoRetryOpenCamera" class="flex items-center justify-center w-full py-4 px-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-black hover:text-black bg-gray-50">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    Kamerayı Aç ve Fotoğraf Çek
+                    Fotoğraf Çek
                 </button>
-            </div>
-            <div id="photoRetryCameraArea" class="hidden mb-3">
-                <div class="relative rounded-lg overflow-hidden bg-black">
-                    <video id="photoRetryVideo" autoplay playsinline muted class="w-full max-h-[280px] object-cover"></video>
-                    <button type="button" id="photoRetrySwitchCam" class="absolute top-2 right-2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70" title="Ön / Arka kamera">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    </button>
-                    <button type="button" id="photoRetryCapture" class="absolute bottom-3 left-1/2 -translate-x-1/2 px-6 py-3 bg-white text-black font-semibold rounded-full shadow-lg">Fotoğrafı Çek</button>
-                </div>
-                <div class="mt-2 flex items-center justify-between">
-                    <button type="button" id="photoRetrySwitchCamOuter" class="text-sm text-gray-600 hover:text-gray-900 font-medium">Ön / Arka kamera değiştir</button>
-                    <button type="button" id="photoRetryCloseCamera" class="text-sm text-gray-500 hover:text-gray-700">İptal</button>
-                </div>
             </div>
             <div id="photoRetryPreview" class="hidden mb-3">
                 <img id="photoRetryPreviewImg" src="" alt="Önizleme" class="w-full h-48 object-cover rounded-lg">
@@ -50,54 +37,16 @@
 @push('scripts')
 <script>
 (function() {
-    let stream = null;
-    let currentFacing = 'environment';
-    function stopCam() {
-        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-        document.getElementById('photoRetryCameraArea').classList.add('hidden');
-        document.getElementById('photoRetryVideo').srcObject = null;
-    }
-    async function startCam(facing) {
-        if (stream) stream.getTracks().forEach(t => t.stop());
-        currentFacing = facing || currentFacing;
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacing }, audio: false });
-        document.getElementById('photoRetryVideo').srcObject = stream;
-    }
-    function switchCam() {
-        currentFacing = currentFacing === 'environment' ? 'user' : 'environment';
-        startCam(currentFacing).catch(function() { alert('Kamera değiştirilemedi.'); });
-    }
-    function setFile(blob) {
-        const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        document.getElementById('photoRetryInput').files = dt.files;
-        document.getElementById('photoRetryPreviewImg').src = URL.createObjectURL(blob);
+    document.getElementById('photoRetryOpenCamera').addEventListener('click', function() {
+        document.getElementById('photoRetryInput').click();
+    });
+    document.getElementById('photoRetryInput').addEventListener('change', function() {
+        const file = this.files && this.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        document.getElementById('photoRetryPreviewImg').src = URL.createObjectURL(file);
         document.getElementById('photoRetryPreview').classList.remove('hidden');
         document.getElementById('photoRetryStartArea').classList.add('hidden');
         document.getElementById('photoRetrySubmit').disabled = false;
-    }
-    document.getElementById('photoRetryOpenCamera').addEventListener('click', async function() {
-        try {
-            currentFacing = 'environment';
-            await startCam('environment');
-            document.getElementById('photoRetryStartArea').classList.add('hidden');
-            document.getElementById('photoRetryCameraArea').classList.remove('hidden');
-        } catch (e) {
-            alert(e.name === 'NotAllowedError' ? 'Kamera izni verin.' : 'Kameraya erişilemiyor.');
-        }
-    });
-    document.getElementById('photoRetrySwitchCam').addEventListener('click', switchCam);
-    document.getElementById('photoRetrySwitchCamOuter').addEventListener('click', switchCam);
-    document.getElementById('photoRetryCloseCamera').addEventListener('click', function() { stopCam(); document.getElementById('photoRetryStartArea').classList.remove('hidden'); });
-    document.getElementById('photoRetryCapture').addEventListener('click', function() {
-        const video = document.getElementById('photoRetryVideo');
-        if (!video.srcObject || !video.videoWidth) return;
-        const c = document.createElement('canvas');
-        c.width = video.videoWidth;
-        c.height = video.videoHeight;
-        c.getContext('2d').drawImage(video, 0, 0);
-        c.toBlob(function(b) { if (b) { stopCam(); setFile(b); } }, 'image/jpeg', 0.92);
     });
     document.getElementById('photoRetryRetake').addEventListener('click', function() {
         document.getElementById('photoRetryPreview').classList.add('hidden');
@@ -105,8 +54,6 @@
         document.getElementById('photoRetryInput').value = '';
         document.getElementById('photoRetrySubmit').disabled = true;
     });
-    document.getElementById('photoRetryForm').addEventListener('submit', function() { stopCam(); });
-    window.addEventListener('pagehide', stopCam);
 })();
 </script>
 @endpush
