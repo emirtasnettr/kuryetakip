@@ -151,28 +151,26 @@
                                         <div class="flex flex-wrap gap-1">
                                             @foreach($shift->validAssignments as $assignment)
                                                 @php
-                                                    // Geç başlama veya başlatmamış kontrolü
+                                                    // Atanmış / Vardiyayı başlattı / Geç başladı / Girmemiş
                                                     $isLate = false;
                                                     $notStarted = false;
+                                                    $hasStarted = (bool) $assignment->started_at;
                                                     $startTimeFormatted = \Carbon\Carbon::parse($shift->start_time)->format('H:i:s');
                                                     $scheduledStart = \Carbon\Carbon::parse($shift->shift_date->format('Y-m-d') . ' ' . $startTimeFormatted);
                                                     
-                                                    if ($assignment->started_at) {
-                                                        // Kurye başlatmış - geç mi başlamış kontrol et
+                                                    if ($hasStarted) {
                                                         $actualStart = \Carbon\Carbon::parse($assignment->started_at);
-                                                        // 5 dakika tolerans ile geç başlama kontrolü
                                                         $isLate = $actualStart->gt($scheduledStart->copy()->addMinutes(5));
                                                     } else {
-                                                        // Kurye henüz başlatmamış - vardiya saati geçmişse problem
                                                         $now = \Carbon\Carbon::now();
                                                         $notStarted = $now->gt($scheduledStart->copy()->addMinutes(5));
                                                     }
+                                                    $statusTitle = $notStarted ? 'Vardiyaya girmemiş' : ($isLate ? 'Geç başladı' : ($hasStarted ? 'Vardiyayı başlattı' : 'Atanmış'));
+                                                    $bgClass = $notStarted ? 'bg-red-100 text-red-800' : ($isLate ? 'bg-orange-100 text-orange-800' : ($hasStarted ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'));
+                                                    $avatarClass = $notStarted ? 'bg-red-600' : ($isLate ? 'bg-orange-600' : ($hasStarted ? 'bg-blue-600' : 'bg-green-600'));
                                                 @endphp
-                                                @php
-                                                    $statusTitle = $notStarted ? 'Vardiyaya girmemiş' : ($isLate ? 'Geç başladı' : 'Vardiyaya girdi');
-                                                @endphp
-                                                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs {{ $notStarted ? 'bg-red-100 text-red-800' : ($isLate ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800') }} rounded-full" title="{{ $assignment->courier->phone }} · {{ $statusTitle }}">
-                                                    <span class="w-5 h-5 {{ $notStarted ? 'bg-red-600' : ($isLate ? 'bg-orange-600' : 'bg-blue-600') }} text-white rounded-full flex items-center justify-center text-[10px] font-medium">
+                                                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs {{ $bgClass }} rounded-full" title="{{ $assignment->courier->phone }} · {{ $statusTitle }}">
+                                                    <span class="w-5 h-5 {{ $avatarClass }} text-white rounded-full flex items-center justify-center text-[10px] font-medium">
                                                         {{ strtoupper(substr($assignment->courier->name, 0, 1)) }}
                                                     </span>
                                                     {{ Str::before($assignment->courier->name, ' ') }}
@@ -418,32 +416,31 @@ async function loadShiftData(shiftId) {
                 let notStarted = false;
                 let statusBadge = '';
                 
-                if (a.started_at) {
-                    // Kurye başlatmış - geç mi başlamış kontrol et
+                const hasStarted = !!a.started_at;
+                if (hasStarted) {
                     const scheduledStart = new Date(a.shift_date + 'T' + a.shift_start_time);
                     const actualStart = new Date(a.started_at);
-                    const tolerance = 5 * 60 * 1000; // 5 dakika tolerans (milisaniye)
+                    const tolerance = 5 * 60 * 1000;
                     isLate = actualStart.getTime() > (scheduledStart.getTime() + tolerance);
-                    
                     if (isLate) {
                         statusBadge = '<span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-orange-100 text-orange-800 rounded">Geç Başlamış</span>';
                     } else {
-                        statusBadge = '<span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-800 rounded">Vardiyaya Girdi</span>';
+                        statusBadge = '<span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-800 rounded">Vardiyayı Başlattı</span>';
                     }
                 } else {
-                    // Kurye henüz başlatmamış - vardiya saati geçmişse problem
                     const scheduledStart = new Date(a.shift_date + 'T' + a.shift_start_time);
                     const now = new Date();
-                    const tolerance = 5 * 60 * 1000; // 5 dakika tolerans
+                    const tolerance = 5 * 60 * 1000;
                     notStarted = now.getTime() > (scheduledStart.getTime() + tolerance);
-                    
                     if (notStarted) {
                         statusBadge = '<span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-800 rounded">Vardiyaya Girmedi</span>';
+                    } else {
+                        statusBadge = '<span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-green-100 text-green-800 rounded">Atanmış</span>';
                     }
                 }
                 
-                const bgColor = notStarted ? 'bg-red-50 border-red-200' : (isLate ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200');
-                const avatarColor = notStarted ? 'bg-red-600' : (isLate ? 'bg-orange-600' : 'bg-blue-600');
+                const bgColor = notStarted ? 'bg-red-50 border-red-200' : (isLate ? 'bg-orange-50 border-orange-200' : (hasStarted ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'));
+                const avatarColor = notStarted ? 'bg-red-600' : (isLate ? 'bg-orange-600' : (hasStarted ? 'bg-blue-600' : 'bg-green-600'));
                 
                 return `
                 <div class="flex items-center justify-between p-3 ${bgColor} border rounded-lg">
