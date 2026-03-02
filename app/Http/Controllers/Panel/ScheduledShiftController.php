@@ -116,7 +116,11 @@ class ScheduledShiftController extends Controller
             $shiftEndDateTime = Carbon::parse(
                 $shift->shift_date->format('Y-m-d') . ' ' . Carbon::parse($shift->end_time)->format('H:i:s')
             );
-            
+            // Gece yarısını geçen vardiya (örn. 15:00-01:00): bitiş ertesi gün
+            if (Carbon::parse($shift->end_time)->lte(Carbon::parse($shift->start_time))) {
+                $shiftEndDateTime->addDay();
+            }
+
             if ($shiftEndDateTime->lt($now)) {
                 // Vardiyayı tamamlandı olarak işaretle
                 $shift->update(['status' => ScheduledShift::STATUS_COMPLETED]);
