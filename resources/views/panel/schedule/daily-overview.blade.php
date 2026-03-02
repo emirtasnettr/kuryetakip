@@ -381,7 +381,7 @@ function closeModal() {
 async function loadShiftData(shiftId) {
     try {
         // Vardiya bilgilerini yükle
-        const shiftResponse = await fetch(`/panel/schedule/shifts/${shiftId}`);
+        const shiftResponse = await fetch(`/panel/schedule/shifts/${shiftId}?t=${Date.now()}`, { cache: 'no-store' });
         const shiftData = await shiftResponse.json();
         
         // Region ID'yi ve vardiya verisini sakla
@@ -510,7 +510,7 @@ async function loadShiftData(shiftId) {
         
         // Uygun kuryeleri yükle (bölgeye göre filtrelenmiş)
         const currentDate = '{{ $selectedDate }}';
-        const couriersResponse = await fetch(`/panel/schedule/couriers?shift_id=${shiftId}&region_id=${currentRegionId}&date=${currentDate}`);
+        const couriersResponse = await fetch(`/panel/schedule/couriers?shift_id=${shiftId}&region_id=${currentRegionId}&date=${currentDate}&t=${Date.now()}`, { cache: 'no-store' });
         const couriersData = await couriersResponse.json();
         
         // Tüm kuryeleri sakla (arama için)

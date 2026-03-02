@@ -216,8 +216,8 @@ class ScheduledShiftController extends Controller
     public function show(ScheduledShift $scheduledShift)
     {
         $scheduledShift->load(['region', 'creator', 'assignments.courier', 'activeAssignments.courier', 'validAssignments.courier']);
-        
-        return response()->json([
+
+        $response = response()->json([
             'id' => $scheduledShift->id,
             'title' => $scheduledShift->display_title,
             'region_id' => $scheduledShift->region_id,
@@ -298,6 +298,10 @@ class ScheduledShiftController extends Controller
                 ];
             })->values(),
         ]);
+
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        $response->headers->set('Pragma', 'no-cache');
+        return $response;
     }
 
     /**
