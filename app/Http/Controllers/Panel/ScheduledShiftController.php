@@ -104,24 +104,35 @@ class ScheduledShiftController extends Controller
     }
 
     /**
+     * Vardiya bitiş anını hesapla (gece yarısını geçen vardiyada bitiş ertesi gün).
+     * Örn: 15:00-01:00 → bitiş = shift_date+1 gün 01:00
+     */
+    protected function getShiftEndDateTime(ScheduledShift $shift): Carbon
+    {
+        $dateStr = $shift->shift_date->format('Y-m-d');
+        $endTimeStr = Carbon::parse($shift->end_time)->format('H:i:s');
+        $shiftEndDateTime = Carbon::parse($dateStr . ' ' . $endTimeStr, config('app.timezone'));
+        $endTimeOnly = Carbon::parse($shift->end_time)->format('H:i');
+        $startTimeOnly = Carbon::parse($shift->start_time)->format('H:i');
+        if ($endTimeOnly <= $startTimeOnly) {
+            $shiftEndDateTime->addDay();
+        }
+        return $shiftEndDateTime;
+    }
+
+    /**
      * Saati geçmiş vardiyaları tamamlandı olarak işaretle
      */
     protected function markPastShiftsAsCompleted(Carbon $date): void
     {
-        $now = Carbon::now();
-        
+        $now = Carbon::now(config('app.timezone'));
+
         $pastShifts = ScheduledShift::whereDate('shift_date', $date->format('Y-m-d'))
             ->whereIn('status', [ScheduledShift::STATUS_DRAFT, ScheduledShift::STATUS_PUBLISHED])
             ->get();
 
         foreach ($pastShifts as $shift) {
-            $shiftEndDateTime = Carbon::parse(
-                $shift->shift_date->format('Y-m-d') . ' ' . Carbon::parse($shift->end_time)->format('H:i:s')
-            );
-            // Gece yarısını geçen vardiya (örn. 15:00-01:00): bitiş ertesi gün
-            if (Carbon::parse($shift->end_time)->lte(Carbon::parse($shift->start_time))) {
-                $shiftEndDateTime->addDay();
-            }
+            $shiftEndDateTime = $this->getShiftEndDateTime($shift);
 
             if ($shiftEndDateTime->lt($now)) {
                 // Vardiyayı tamamlandı olarak işaretle
@@ -143,24 +154,19 @@ class ScheduledShiftController extends Controller
     }
 
     /**
-     * Bitiş saati henüz gelmemiş ama "tamamlandı" işaretli vardiyaları tekrar yayına al (gece geçen vardiya düzeltmesi)
+     * Bitiş saati henüz gelmemiş ama "tamamlandı" işaretli vardiyaları tekrar yayına al (gece geçen vardiya düzeltmesi).
+     * Örn: 15:00-01:00 vardiya sabah 01:00'da değil, ertesi gün 01:00'da biter; o saate kadar tamamlandı sayılmaz.
      */
     protected function reopenWronglyCompletedShifts(Carbon $date): void
     {
-        $now = Carbon::now();
+        $now = Carbon::now(config('app.timezone'));
 
         $completedShifts = ScheduledShift::whereDate('shift_date', $date->format('Y-m-d'))
             ->where('status', ScheduledShift::STATUS_COMPLETED)
             ->get();
 
         foreach ($completedShifts as $shift) {
-            $shiftEndDateTime = Carbon::parse(
-                $shift->shift_date->format('Y-m-d') . ' ' . Carbon::parse($shift->end_time)->format('H:i:s')
-            );
-            if (Carbon::parse($shift->end_time)->lte(Carbon::parse($shift->start_time))) {
-                $shiftEndDateTime->addDay();
-            }
-
+            $shiftEndDateTime = $this->getShiftEndDateTime($shift);
             if ($shiftEndDateTime->gt($now)) {
                 $shift->update(['status' => ScheduledShift::STATUS_PUBLISHED]);
             }
