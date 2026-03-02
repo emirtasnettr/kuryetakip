@@ -25,7 +25,7 @@ class ShiftController extends Controller
         $accessibleCouriers = $user->getAccessibleCouriers();
 
         $query = Shift::whereIn('user_id', $accessibleCouriers->pluck('id'))
-            ->with(['user', 'district', 'region', 'photos']);
+            ->with(['user', 'district', 'region', 'photos', 'sourceAssignment.scheduledShift']);
 
         // Tarih aralığı filtresi
         if ($request->filled('start_date')) {

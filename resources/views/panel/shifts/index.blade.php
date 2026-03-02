@@ -48,6 +48,7 @@
                     <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap sticky left-0 bg-gray-50 z-20 min-w-[120px]">Kurye</th>
                     <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Bölge</th>
                     <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Başl.</th>
+                    <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap" title="Gecikme (dakika)">Gecikme</th>
                     <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Bitiş</th>
                     <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Süre</th>
                     <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Paket</th>
@@ -73,6 +74,13 @@
                         </td>
                         <td class="px-3 py-2 whitespace-nowrap text-gray-600">{{ $shift->region?->name ?? ($shift->district?->name ?? '–') }}</td>
                         <td class="px-3 py-2 whitespace-nowrap text-gray-600">{{ $shift->started_at->format('d.m.y H:i') }}</td>
+                        <td class="px-3 py-2 whitespace-nowrap text-sm">
+                            @if($shift->delay_minutes > 0)
+                                <span class="font-medium text-amber-600" title="Planlanan başlangıçtan {{ $shift->delay_minutes }} dk gecikme">{{ $shift->delay_minutes }} dk</span>
+                            @else
+                                <span class="text-gray-400">–</span>
+                            @endif
+                        </td>
                         <td class="px-3 py-2 whitespace-nowrap text-gray-600">{{ $shift->ended_at?->format('d.m.y H:i') ?? '–' }}</td>
                         <td class="px-3 py-2 whitespace-nowrap text-gray-600">{{ $shift->formatted_duration }}</td>
                         <td class="px-3 py-2 whitespace-nowrap font-medium text-indigo-600">{{ $shift->package_count ?? '–' }}</td>
@@ -108,7 +116,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="10" class="px-3 py-8 text-center text-gray-500">Vardiya kaydı bulunamadı.</td>
+                        <td colspan="11" class="px-3 py-8 text-center text-gray-500">Vardiya kaydı bulunamadı.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -160,10 +168,16 @@
             </div>
             
             <!-- Info Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center bg-gray-50 rounded-lg p-3">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center bg-gray-50 rounded-lg p-3">
                 <div>
                     <p class="text-xs text-gray-500">Başlangıç</p>
                     <p class="text-sm font-medium text-gray-800">{{ $shift->started_at->format('d.m.Y H:i') }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">Gecikme</p>
+                    <p class="text-sm font-medium {{ $shift->delay_minutes > 0 ? 'text-amber-600' : 'text-gray-500' }}">
+                        {{ $shift->delay_minutes > 0 ? $shift->delay_minutes . ' dk' : '—' }}
+                    </p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-500">Bitiş</p>
