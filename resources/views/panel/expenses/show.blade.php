@@ -72,23 +72,13 @@
 
     @if($expenseRequest->isPending())
         <div class="border-t border-gray-200 pt-6">
-            <p class="text-sm font-medium text-gray-700 mb-3">Onayla</p>
-            <div class="flex flex-wrap gap-3">
-                <form action="{{ route('panel.expenses.approve', $expenseRequest) }}" method="POST" class="inline">
-                    @csrf
-                    <input type="hidden" name="approval_type" value="{{ \App\Models\ExpenseRequest::APPROVAL_DEDUCT_FROM_SETTLEMENT }}">
-                    <button type="submit" class="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700">
-                        Kurye Hakedişinden Düş
-                    </button>
-                </form>
-                <form action="{{ route('panel.expenses.approve', $expenseRequest) }}" method="POST" class="inline">
-                    @csrf
-                    <input type="hidden" name="approval_type" value="{{ \App\Models\ExpenseRequest::APPROVAL_CLOSED }}">
-                    <button type="submit" class="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600">
-                        Kaydı Sonlandır
-                    </button>
-                </form>
-            </div>
+            <form action="{{ route('panel.expenses.approve', $expenseRequest) }}" method="POST" class="inline">
+                @csrf
+                <input type="hidden" name="approval_type" value="{{ \App\Models\ExpenseRequest::APPROVAL_CLOSED }}">
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700">
+                    Onayla
+                </button>
+            </form>
         </div>
     @else
         <div class="border-t border-gray-200 pt-4 mt-4 text-sm text-gray-500">
@@ -100,7 +90,7 @@
             @if($expenseRequest->approval_type === \App\Models\ExpenseRequest::APPROVAL_DEDUCT_FROM_SETTLEMENT)
                 Hakedişten düşüldü
             @elseif($expenseRequest->approval_type === \App\Models\ExpenseRequest::APPROVAL_CLOSED)
-                Tamamlandı (kayıt sonlandırıldı)
+                Onaylandı
             @elseif($expenseRequest->approval_type === \App\Models\ExpenseRequest::APPROVAL_DEBT_BALANCE)
                 Borç bakiyesi (artık kullanılmıyor)
             @elseif($expenseRequest->approval_type === \App\Models\ExpenseRequest::APPROVAL_SETTLEMENT)
