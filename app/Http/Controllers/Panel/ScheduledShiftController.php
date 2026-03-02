@@ -74,7 +74,9 @@ class ScheduledShiftController extends Controller
         
         // Saati geçmiş vardiyaları otomatik tamamlandı olarak işaretle
         $this->markPastShiftsAsCompleted($date);
-        
+        // Gece yarısını geçen vardiyalar daha önce yanlış tamamlanmışsa geri aç (bitiş henüz gelmediyse)
+        $this->reopenWronglyCompletedShifts($date);
+
         // Tüm bölgeleri al
         $regions = Region::active()->orderBy('city')->orderBy('name')->get();
         
@@ -136,6 +138,31 @@ class ScheduledShiftController extends Controller
                             'completed_at' => now(),
                         ]);
                     });
+            }
+        }
+    }
+
+    /**
+     * Bitiş saati henüz gelmemiş ama "tamamlandı" işaretli vardiyaları tekrar yayına al (gece geçen vardiya düzeltmesi)
+     */
+    protected function reopenWronglyCompletedShifts(Carbon $date): void
+    {
+        $now = Carbon::now();
+
+        $completedShifts = ScheduledShift::whereDate('shift_date', $date->format('Y-m-d'))
+            ->where('status', ScheduledShift::STATUS_COMPLETED)
+            ->get();
+
+        foreach ($completedShifts as $shift) {
+            $shiftEndDateTime = Carbon::parse(
+                $shift->shift_date->format('Y-m-d') . ' ' . Carbon::parse($shift->end_time)->format('H:i:s')
+            );
+            if (Carbon::parse($shift->end_time)->lte(Carbon::parse($shift->start_time))) {
+                $shiftEndDateTime->addDay();
+            }
+
+            if ($shiftEndDateTime->gt($now)) {
+                $shift->update(['status' => ScheduledShift::STATUS_PUBLISHED]);
             }
         }
     }
