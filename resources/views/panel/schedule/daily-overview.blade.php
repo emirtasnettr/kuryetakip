@@ -48,28 +48,36 @@
         </div>
         
         <!-- Özet İstatistikler -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 md:gap-4 mt-6">
             <div class="bg-gray-50 rounded-lg p-4 text-center">
-                <p class="text-3xl font-bold text-gray-900">{{ $stats['total_shifts'] }}</p>
-                <p class="text-sm text-gray-500">Toplam Vardiya</p>
+                <p class="text-2xl md:text-3xl font-bold text-gray-900">{{ $stats['total_shifts'] }}</p>
+                <p class="text-xs md:text-sm text-gray-500">Toplam Vardiya</p>
             </div>
             <div class="bg-blue-50 rounded-lg p-4 text-center">
-                <p class="text-3xl font-bold text-blue-600">{{ $stats['regions_with_shifts'] }}/{{ $stats['total_regions'] }}</p>
-                <p class="text-sm text-gray-500">Aktif Bölge</p>
+                <p class="text-2xl md:text-3xl font-bold text-blue-600">{{ $stats['regions_with_shifts'] }}/{{ $stats['total_regions'] }}</p>
+                <p class="text-xs md:text-sm text-gray-500">Aktif Bölge</p>
             </div>
-            <div class="bg-orange-50 rounded-lg p-4 text-center">
-                <p class="text-3xl font-bold text-orange-600">{{ $stats['total_required'] }}</p>
-                <p class="text-sm text-gray-500">Gereken Kurye</p>
+            <div class="bg-indigo-50 rounded-lg p-4 text-center">
+                <p class="text-2xl md:text-3xl font-bold text-indigo-600">{{ $stats['couriers_with_shift_count'] }}</p>
+                <p class="text-xs md:text-sm text-gray-500">Vardiyası Olan Kurye Sayısı</p>
             </div>
             <div class="bg-green-50 rounded-lg p-4 text-center">
-                <p class="text-3xl font-bold text-green-600">{{ $stats['total_assigned'] }}</p>
-                <p class="text-sm text-gray-500">Atanan Kurye</p>
+                <p class="text-2xl md:text-3xl font-bold text-green-600">{{ $stats['couriers_on_shift_count'] }}</p>
+                <p class="text-xs md:text-sm text-gray-500">Vardiyada Olan Kurye Sayısı</p>
             </div>
-            <div class="{{ $stats['total_assigned'] >= $stats['total_required'] ? 'bg-green-50' : 'bg-red-50' }} rounded-lg p-4 text-center">
-                <p class="text-3xl font-bold {{ $stats['total_assigned'] >= $stats['total_required'] ? 'text-green-600' : 'text-red-600' }}">
-                    {{ $stats['total_required'] > 0 ? round(($stats['total_assigned'] / $stats['total_required']) * 100) : 0 }}%
+            <div class="bg-orange-50 rounded-lg p-4 text-center">
+                <p class="text-2xl md:text-3xl font-bold text-orange-600">{{ $stats['late_entry_count'] }}</p>
+                <p class="text-xs md:text-sm text-gray-500">Vardiyaya Geç Giren Kurye Sayısı</p>
+            </div>
+            <div class="bg-red-50 rounded-lg p-4 text-center">
+                <p class="text-2xl md:text-3xl font-bold text-red-600">{{ $stats['no_show_count'] }}</p>
+                <p class="text-xs md:text-sm text-gray-500">Vardiyaya Girmeyen Kurye Sayısı</p>
+            </div>
+            <div class="{{ $stats['compliance_pct'] >= 90 ? 'bg-green-50' : ($stats['compliance_pct'] >= 70 ? 'bg-amber-50' : 'bg-red-50') }} rounded-lg p-4 text-center" title="Planlanan toplam vardiya saatine sağlanan uyum (başlatılan vardiya süreleri / toplam gerekli süre)">
+                <p class="text-2xl md:text-3xl font-bold {{ $stats['compliance_pct'] >= 90 ? 'text-green-600' : ($stats['compliance_pct'] >= 70 ? 'text-amber-600' : 'text-red-600') }}">
+                    {{ $stats['compliance_pct'] }}%
                 </p>
-                <p class="text-sm text-gray-500">Doluluk Oranı</p>
+                <p class="text-xs md:text-sm text-gray-500">Uygunluk Oranı</p>
             </div>
         </div>
     </div>

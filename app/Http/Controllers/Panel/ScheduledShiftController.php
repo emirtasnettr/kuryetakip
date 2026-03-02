@@ -81,25 +81,64 @@ class ScheduledShiftController extends Controller
         $regions = Region::active()->orderBy('city')->orderBy('name')->get();
         
         // Seçili güne ait vardiyalar: devam eden (published) + tamamlanan (completed) hepsi listelensin.
-        // validAssignments kullanılıyor ki tamamlanmış vardiyalarda da atanan kuryeler görünsün (activeAssignments bitişte boşalıyor).
-        $shifts = ScheduledShift::with(['region', 'validAssignments.courier'])
+        // validAssignments.scheduledShift: gecikme ve planlanan başlangıç için gerekli.
+        $shifts = ScheduledShift::with(['region', 'validAssignments.courier', 'validAssignments.scheduledShift'])
             ->whereDate('shift_date', $date->format('Y-m-d'))
             ->whereIn('status', [ScheduledShift::STATUS_PUBLISHED, ScheduledShift::STATUS_COMPLETED])
             ->orderBy('start_time')
             ->get();
-        
+
+        // Tüm atamalar (iptal hariç)
+        $allAssignments = $shifts->flatMap(fn ($s) => $s->validAssignments);
+        $now = Carbon::now(config('app.timezone'));
+        $lateToleranceMinutes = 5;
+
+        // Vardiyada şu an olan: başlamış, tamamlanmamış, vardiya bitişi geçmemiş
+        $onShiftNow = $allAssignments->filter(function ($a) use ($now) {
+            if (!$a->started_at || $a->completed_at) {
+                return false;
+            }
+            $endDt = $this->getShiftEndDateTime($a->scheduledShift);
+
+            return $endDt->gt($now);
+        });
+        // Gecikmeli giriş: başlamış ve delay_minutes > 0
+        $lateEntries = $allAssignments->filter(fn ($a) => $a->started_at && $a->delay_minutes > 0);
+        // Girmeyen (no-show): başlamamış ve planlanan başlangıç + tolerans geçmiş
+        $noShow = $allAssignments->filter(function ($a) use ($now, $lateToleranceMinutes) {
+            if ($a->started_at) {
+                return false;
+            }
+            $planned = $a->planned_start_at;
+            if (!$planned) {
+                return false;
+            }
+
+            return $planned->copy()->addMinutes($lateToleranceMinutes)->lt($now);
+        });
+
+        $totalPlannedMinutes = $shifts->sum(fn ($s) => $s->required_couriers * $s->duration_in_minutes);
+        $fulfilledMinutes = $allAssignments->filter(fn ($a) => $a->started_at)
+            ->sum(fn ($a) => $a->scheduledShift ? $a->scheduledShift->duration_in_minutes : 0);
+        $compliancePct = $totalPlannedMinutes > 0
+            ? round(100 * $fulfilledMinutes / $totalPlannedMinutes, 1)
+            : 0;
+
         // Bölgelere göre grupla
         $shiftsByRegion = $shifts->groupBy('region_id');
-        
-        // İstatistikler
+
+        // İstatistikler: Toplam Vardiya, Aktif Bölge, Vardiyası Olan Kurye, Vardiyada Olan, Geç Giren, Girmeyen, Uygunluk Oranı
         $stats = [
             'total_shifts' => $shifts->count(),
-            'total_required' => $shifts->sum('required_couriers'),
-            'total_assigned' => $shifts->sum('assigned_count'),
             'regions_with_shifts' => $shiftsByRegion->count(),
             'total_regions' => $regions->count(),
+            'couriers_with_shift_count' => $allAssignments->pluck('courier_id')->unique()->count(),
+            'couriers_on_shift_count' => $onShiftNow->pluck('courier_id')->unique()->count(),
+            'late_entry_count' => $lateEntries->count(),
+            'no_show_count' => $noShow->count(),
+            'compliance_pct' => $compliancePct,
         ];
-        
+
         return view('panel.schedule.daily-overview', compact('regions', 'shifts', 'shiftsByRegion', 'selectedDate', 'date', 'stats'));
     }
 
