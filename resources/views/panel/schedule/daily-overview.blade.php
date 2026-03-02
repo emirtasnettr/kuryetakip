@@ -168,8 +168,11 @@
                                                         $notStarted = $now->gt($scheduledStart->copy()->addMinutes(5));
                                                     }
                                                 @endphp
-                                                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs {{ $notStarted ? 'bg-red-100 text-red-800' : ($isLate ? 'bg-orange-100 text-orange-800' : ($isShiftComplete ? 'bg-green-200' : 'bg-white')) }} rounded-full" title="{{ $assignment->courier->phone }}{{ $notStarted ? ' - Henüz başlatmadı' : ($isLate ? ' - Geç başladı' : '') }}">
-                                                    <span class="w-5 h-5 {{ $notStarted ? 'bg-red-600' : ($isLate ? 'bg-orange-600' : 'bg-gray-700') }} text-white rounded-full flex items-center justify-center text-[10px] font-medium">
+                                                @php
+                                                    $statusTitle = $notStarted ? 'Vardiyaya girmemiş' : ($isLate ? 'Geç başladı' : 'Vardiyaya girdi');
+                                                @endphp
+                                                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs {{ $notStarted ? 'bg-red-100 text-red-800' : ($isLate ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800') }} rounded-full" title="{{ $assignment->courier->phone }} · {{ $statusTitle }}">
+                                                    <span class="w-5 h-5 {{ $notStarted ? 'bg-red-600' : ($isLate ? 'bg-orange-600' : 'bg-blue-600') }} text-white rounded-full flex items-center justify-center text-[10px] font-medium">
                                                         {{ strtoupper(substr($assignment->courier->name, 0, 1)) }}
                                                     </span>
                                                     {{ Str::before($assignment->courier->name, ' ') }}
@@ -424,6 +427,8 @@ async function loadShiftData(shiftId) {
                     
                     if (isLate) {
                         statusBadge = '<span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-orange-100 text-orange-800 rounded">Geç Başlamış</span>';
+                    } else {
+                        statusBadge = '<span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-800 rounded">Vardiyaya Girdi</span>';
                     }
                 } else {
                     // Kurye henüz başlatmamış - vardiya saati geçmişse problem
@@ -437,8 +442,8 @@ async function loadShiftData(shiftId) {
                     }
                 }
                 
-                const bgColor = notStarted ? 'bg-red-50 border-red-200' : (isLate ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-100');
-                const avatarColor = notStarted ? 'bg-red-600' : (isLate ? 'bg-orange-600' : 'bg-green-600');
+                const bgColor = notStarted ? 'bg-red-50 border-red-200' : (isLate ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200');
+                const avatarColor = notStarted ? 'bg-red-600' : (isLate ? 'bg-orange-600' : 'bg-blue-600');
                 
                 return `
                 <div class="flex items-center justify-between p-3 ${bgColor} border rounded-lg">
