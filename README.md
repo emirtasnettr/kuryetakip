@@ -333,16 +333,36 @@ resources/views/
 
 ## 🚀 Production İçin
 
-### 1. Optimizasyon
+### 1. Deploy Sonrası (Önemli: Cache)
+
+Canlıda değişikliklerin hemen görünmesi için **her deploy sonrası** cache temizleyin:
+
+```bash
+php artisan optimize:clear
+# veya tek tek:
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+php artisan cache:clear
+```
+
+İsterseniz sonrasında sadece config cache alın (view/route cache almayın; böylece her deploy’da sayfa güncel kalır):
+
+```bash
+php artisan config:cache
+```
+
+Uygulama cache’ini de azaltmak için canlıda `.env` içinde `CACHE_DRIVER=array` kullanabilirsiniz (cache dosyaları birikmez; oturumlar etkilenmez).
+
+### 2. İlk Kurulum / Optimizasyon
 
 ```bash
 composer install --optimize-autoloader --no-dev
 php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# route:cache ve view:cache canlıda güncellemeleri geciktirebilir; kullanmayabilirsiniz
 ```
 
-### 2. Storage Disk (S3)
+### 3. Storage Disk (S3)
 
 `.env` dosyasında S3 ayarları:
 
@@ -354,7 +374,7 @@ AWS_DEFAULT_REGION=eu-west-1
 AWS_BUCKET=your-bucket
 ```
 
-### 3. Queue
+### 4. Queue
 
 Fotoğraf işleme için queue önerilir:
 
