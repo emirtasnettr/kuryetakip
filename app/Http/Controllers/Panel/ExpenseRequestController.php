@@ -63,7 +63,7 @@ class ExpenseRequestController extends Controller
         $callback = function () use ($requests) {
             $stream = fopen('php://output', 'w');
             fprintf($stream, chr(0xEF) . chr(0xBB) . chr(0xBF));
-            fputcsv($stream, ['Kurye', 'Tutar (TL)', 'Sipariş No', 'Nereden Alındı', 'Gerekçe', 'Oluşturulma'], ';');
+            fputcsv($stream, ['Kurye', 'Tutar (TL)', 'Sipariş No', 'Alınan İşletme İsmi', 'Dış Alım Yapma Sebebi', 'Oluşturulma'], ';');
             foreach ($requests as $req) {
                 fputcsv($stream, [
                     $req->user?->name ?? '',
@@ -104,8 +104,8 @@ class ExpenseRequestController extends Controller
             fputcsv($stream, [
                 'Kurye',
                 'Sipariş No',
-                'Nereden Alındı',
-                'Neden / Gerekçe',
+                'Alınan İşletme İsmi',
+                'Dış Alım Yapma Sebebi',
                 'Kalemler (Ürün – Adet/KG – Fiyat TL)',
                 'Toplam (TL)',
                 'Durum',

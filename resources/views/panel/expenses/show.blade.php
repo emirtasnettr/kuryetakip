@@ -30,11 +30,11 @@
             <p class="text-gray-900 mb-3">{{ $expenseRequest->order_number }}</p>
         @endif
         @if($expenseRequest->source)
-            <p class="text-sm font-medium text-gray-700 mb-1">Nereden Alındı</p>
+            <p class="text-sm font-medium text-gray-700 mb-1">Alınan İşletme İsmi</p>
             <p class="text-gray-900 mb-3">{{ $expenseRequest->source }}</p>
         @endif
         @if($expenseRequest->reason)
-            <p class="text-sm font-medium text-gray-700 mb-1">Neden</p>
+            <p class="text-sm font-medium text-gray-700 mb-1">Dış Alım Yapma Sebebi</p>
             <p class="text-gray-900 whitespace-pre-wrap">{{ $expenseRequest->reason }}</p>
         @endif
     </div>

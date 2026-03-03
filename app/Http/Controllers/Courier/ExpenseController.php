@@ -33,7 +33,7 @@ class ExpenseController extends Controller
         ], [
             'receipt_photo.required' => 'Fiş fotoğrafı zorunludur.',
             'order_number.required' => 'Sipariş numarası zorunludur.',
-            'reason.required' => 'Neden zorunludur.',
+            'reason.required' => 'Dış alım yapma sebebi zorunludur.',
             'source.required' => 'Nereden alındı alanı zorunludur.',
         ]);
 

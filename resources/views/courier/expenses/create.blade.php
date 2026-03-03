@@ -21,7 +21,7 @@
             @enderror
         </div>
         <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-            <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">Neden <span class="text-red-500">*</span></label>
+            <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">Dış Alım Yapma Sebebi <span class="text-red-500">*</span></label>
             <textarea name="reason" id="reason" rows="3" required maxlength="2000"
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
                       placeholder="Masrafın nedenini kısaca yazın">{{ old('reason') }}</textarea>
@@ -30,7 +30,7 @@
             @enderror
         </div>
         <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-            <label for="source" class="block text-sm font-medium text-gray-700 mb-2">Nereden Alındı <span class="text-red-500">*</span></label>
+            <label for="source" class="block text-sm font-medium text-gray-700 mb-2">Alınan İşletme İsmi <span class="text-red-500">*</span></label>
             <input type="text" name="source" id="source" value="{{ old('source') }}" required maxlength="255"
                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
                    placeholder="Örn: Migros Kadıköy, Shell İstasyonu">
